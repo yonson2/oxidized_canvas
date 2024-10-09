@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+List of arts
+{% endblock title %}
+
+{% block content %}
+<h1>artss</h1>
+<div class="mb-10">
+{% for item in items %}
+    <div class="mb-5">
+        <div>
+            
+            <label><b>{{"image" | capitalize }}:</b> {{item.image}}</label>
+            </div>
+        <div>
+            
+            <label><b>{{"prompt" | capitalize }}:</b> {{item.prompt}}</label>
+            </div>
+        <div>
+            
+            <label><b>{{"title" | capitalize }}:</b> {{item.title}}</label>
+            </div>
+        <div>
+            
+            <label><b>{{"uuid" | capitalize }}:</b> {{item.uuid}}</label>
+            </div>
+        <a href="/arts/{{ item.id }}/edit">Edit</a>
+        <a href="/arts/{{ item.id }}">View</a>
+    </div>
+{% endfor %}
+<br />
+<br />
+<a href="/arts/new">New arts</a>
+</div>
+{% endblock content %}

@@ -38,6 +38,13 @@ fluent-templates = { version = "0.8.0", features = ["tera"] }
 unic-langid = "0.9.4"
 # /view engine
 
+ureq = { version = "2.10.1", features = ["json"] }
+thiserror = "1.0.64"
+async-std = "1.13.0"
+image = "0.25.2"
+base64 = "0.22.1"
+anthropic = "0.0.8"
+
 [[bin]]
 name = "oxidized_canvas-cli"
 path = "src/bin/main.rs"
