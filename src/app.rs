@@ -47,6 +47,7 @@ impl Hooks for App {
 
     fn routes(_ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
+            .add_route(controllers::arts::index())
             .add_route(controllers::arts::routes())
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
@@ -57,6 +58,7 @@ impl Hooks for App {
     }
 
     fn register_tasks(tasks: &mut Tasks) {
+        tasks.register(tasks::create_art::CreateArt);
         tasks.register(tasks::seed::SeedData);
     }
 
@@ -70,3 +72,4 @@ impl Hooks for App {
         Ok(())
     }
 }
+

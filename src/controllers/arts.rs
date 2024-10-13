@@ -88,6 +88,15 @@ pub async fn show(
 }
 
 #[debug_handler]
+pub async fn show_latest(
+    ViewEngine(v): ViewEngine<TeraView>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let item = Model::find_latest(&ctx.db).await?;
+    views::arts::show(&v, &item)
+}
+
+#[debug_handler]
 pub async fn add(State(ctx): State<AppContext>, Form(params): Form<Params>) -> Result<Redirect> {
     let mut item = ActiveModel {
         ..Default::default()
@@ -103,10 +112,17 @@ pub async fn remove(Path(id): Path<i32>, State(ctx): State<AppContext>) -> Resul
     format::empty()
 }
 
+pub fn index() -> Routes {
+    Routes::new()
+        .add("/", get(show_latest))
+        .add("/:id", get(show))
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("arts/")
-        .add("/", get(list))
+        .add("/", get(show_latest))
+        // .add("/", get(list))
         .add("/", post(add))
         .add("new", get(new))
         .add(":id", get(show))

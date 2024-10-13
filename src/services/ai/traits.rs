@@ -11,6 +11,6 @@ pub trait ImageGenerator {
 //TODO: change name? merge traits? leave as is? (TO-THINK)
 #[async_trait]
 pub trait TextGenerator {
-    /// generate takes a prompt and returns a Base64 encoding of the image in WebP format.
+    /// generate takes a prompt and returns a text response from AI.
     async fn generate(&self, prompt: &str) -> Result<String, Error>;
 }

@@ -17,3 +17,5 @@ target/
 *.pdb
 
 *.sqlite
+
+node_modules/

@@ -58,19 +58,36 @@ impl ImageGenerator for BFLService {
                 }
             }
         }
-        // Send a GET request to download the image
-        let response = ureq::get(&url).call()?;
 
-        // Read the response body into a Vec<u8>
-        let mut buffer = Vec::new();
-        response.into_reader().read_to_end(&mut buffer)?;
-
-        let img = load_from_memory(&buffer)?;
-        let mut converted_img = Cursor::new(Vec::new());
-        img.write_to(&mut converted_img, ImageFormat::WebP)?;
-
-        Ok(general_purpose::STANDARD.encode(converted_img.get_ref()))
+        // Ok(url)
+        let buffer = download_file(&url)?;
+        let webp_buffer = to_webp(&buffer)?;
+        Ok(to_base64(&webp_buffer))
     }
+}
+
+/// download_file is a little helper function that takes a url and returns
+/// a Vec<u8> with its contents.
+fn download_file(url: &str) -> Result<Vec<u8>, Error> {
+    // Send a GET request to download the image
+    let response = ureq::get(url).call()?;
+
+    // Read the response body into a Vec<u8>
+    let mut buffer = Vec::new();
+    response.into_reader().read_to_end(&mut buffer)?;
+    Ok(buffer)
+}
+
+/// to_webp takes in a slice of bytes of an image and converts it to `.webp`
+fn to_webp(old: &[u8]) -> Result<Vec<u8>, Error> {
+    let img = load_from_memory(old)?;
+    let mut converted_img: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+    img.write_to(&mut converted_img, ImageFormat::WebP)?;
+    Ok(converted_img.get_ref().clone()) // moving into its own fn, need to clone.
+}
+
+fn to_base64(bytes: &[u8]) -> String {
+    general_purpose::STANDARD.encode(bytes)
 }
 
 impl From<ureq::Error> for Error {
