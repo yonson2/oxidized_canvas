@@ -2,8 +2,10 @@
 #![allow(clippy::unnecessary_struct_initialization)]
 #![allow(clippy::unused_async)]
 use axum::debug_handler;
+use axum::http::{header, StatusCode};
 use axum::{extract::Form, response::Redirect};
 use loco_rs::prelude::*;
+use regex::Regex;
 use sea_orm::{sea_query::Order, QueryOrder};
 use serde::{Deserialize, Serialize};
 
@@ -83,8 +85,11 @@ pub async fn show(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
+    let latest_id = Model::find_latest_id(&ctx.db).await?;
     let item = load_item(&ctx, id).await?;
-    views::arts::show(&v, &item)
+    let latest = latest_id == item.id;
+
+    views::arts::show(&v, &item, latest)
 }
 
 #[debug_handler]
@@ -93,7 +98,7 @@ pub async fn show_latest(
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let item = Model::find_latest(&ctx.db).await?;
-    views::arts::show(&v, &item)
+    views::arts::show(&v, &item, true)
 }
 
 #[debug_handler]
@@ -112,10 +117,31 @@ pub async fn remove(Path(id): Path<i32>, State(ctx): State<AppContext>) -> Resul
     format::empty()
 }
 
+#[debug_handler]
+pub async fn serve_image(
+    Path(id): Path<String>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    //TODO: support png too.
+    let (id, _format) = id.extract_id().ok_or_else(|| Error::NotFound)?;
+    let bytes = Model::find_img_slice_by_id(&ctx.db, id).await?;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/webp"),
+            (header::CACHE_CONTROL, "max-age=31536000"),
+        ],
+        bytes,
+    )
+        .into_response())
+}
+
 pub fn index() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
         .add("/:id", get(show))
+        .add("/img/:id", get(serve_image))
 }
 
 pub fn routes() -> Routes {
@@ -129,4 +155,29 @@ pub fn routes() -> Routes {
         .add(":id/edit", get(edit))
         .add(":id", post(update))
         .add(":id", delete(remove))
+}
+
+trait ExtractId {
+    fn extract_id(&self) -> Option<(u32, ImageFormat)>;
+}
+
+impl ExtractId for String {
+    fn extract_id(&self) -> Option<(u32, ImageFormat)> {
+        let re = Regex::new(r"^(\d+)(\.png|.webp)$").unwrap();
+        let captures = re.captures(self)?;
+
+        let id = captures.get(1)?.as_str().parse::<u32>().ok()?;
+        let format = match captures.get(2)?.as_str() {
+            ".png" => Some(ImageFormat::Png),
+            ".webp" => Some(ImageFormat::WebP),
+            _ => None,
+        }?;
+
+        Some((id, format))
+    }
+}
+
+enum ImageFormat {
+    Png,
+    WebP,
 }

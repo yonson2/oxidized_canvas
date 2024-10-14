@@ -1,3 +1,5 @@
+default: watch
+
 build_css:
   npm run build
 build: build_css

@@ -1,6 +1,9 @@
+use base64::{engine::general_purpose, Engine as _};
 use loco_rs::model::ModelResult;
+use loco_rs::prelude::model;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
+use sea_orm::FromQueryResult;
 use sea_orm::{entity::prelude::*, QueryOrder, QuerySelect};
 use sea_orm::{Order, TransactionTrait};
 
@@ -62,6 +65,21 @@ impl super::_entities::arts::Model {
         arts.ok_or_else(|| ModelError::EntityNotFound)
     }
 
+    /// returns just the latest id (to see if we should display the "next" button)
+    pub async fn find_latest_id(db: &DatabaseConnection) -> ModelResult<i32> {
+        let ArtId { id } = arts::Entity::find()
+            .order_by_desc(arts::Column::CreatedAt)
+            .limit(1)
+            .select_only()
+            .column(arts::Column::Id)
+            .into_partial_model::<ArtId>()
+            .one(db)
+            .await?
+            .ok_or_else(|| ModelError::EntityNotFound)?;
+
+        Ok(id)
+    }
+
     /// finds n arts at random
     ///
     /// # Errors
@@ -76,10 +94,31 @@ impl super::_entities::arts::Model {
 
         Ok(arts)
     }
+
+    pub async fn find_img_slice_by_id(db: &DatabaseConnection, id: u32) -> ModelResult<Vec<u8>> {
+        let art = arts::Entity::find()
+            .filter(model::query::condition().eq(arts::Column::Id, id).build())
+            .one(db)
+            .await?
+            .ok_or_else(|| ModelError::EntityNotFound)?;
+
+        let img = match general_purpose::STANDARD.decode(art.image) {
+            Ok(bytes) => bytes,
+            Err(e) => return Err(ModelError::Any(Box::new(e))),
+        };
+
+        Ok(img)
+    }
 }
 
 pub struct ArtParams {
     pub image: String,
     pub prompt: String,
     pub title: String,
+}
+
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "Entity")]
+struct ArtId {
+    pub id: i32,
 }

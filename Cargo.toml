@@ -44,6 +44,7 @@ async-std = "1.13.0"
 image = "0.25.2"
 base64 = "0.22.1"
 anthropic = "0.0.8"
+regex = "1.11.0"
 
 [[bin]]
 name = "oxidized_canvas-cli"

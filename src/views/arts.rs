@@ -16,8 +16,12 @@ pub fn list(v: &impl ViewRenderer, items: &Vec<arts::Model>) -> Result<Response>
 /// # Errors
 ///
 /// When there is an issue with rendering the view.
-pub fn show(v: &impl ViewRenderer, item: &arts::Model) -> Result<Response> {
-    format::render().view(v, "arts/show.html", serde_json::json!({"item": item}))
+pub fn show(v: &impl ViewRenderer, item: &arts::Model, latest: bool) -> Result<Response> {
+    format::render().view(
+        v,
+        "arts/show.html",
+        serde_json::json!({"item": item, "latest": latest}),
+    )
 }
 
 /// Render a arts create form.
