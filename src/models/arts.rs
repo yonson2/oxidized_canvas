@@ -80,6 +80,22 @@ impl super::_entities::arts::Model {
         Ok(id)
     }
 
+    /// returns all the ids of the created `Art`s
+    pub async fn find_ids(db: &DatabaseConnection) -> ModelResult<Vec<i32>> {
+        let ids = arts::Entity::find()
+            .order_by_asc(arts::Column::CreatedAt)
+            .select_only()
+            .column(arts::Column::Id)
+            .into_partial_model::<ArtId>()
+            .all(db)
+            .await?
+            .iter()
+            .map(|a| a.id)
+            .collect();
+
+        Ok(ids)
+    }
+
     /// finds n arts at random
     ///
     /// # Errors

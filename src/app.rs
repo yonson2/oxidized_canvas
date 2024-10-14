@@ -58,6 +58,7 @@ impl Hooks for App {
     }
 
     fn register_tasks(tasks: &mut Tasks) {
+        tasks.register(tasks::import_arts::ImportArts);
         tasks.register(tasks::create_art::CreateArt);
         tasks.register(tasks::seed::SeedData);
     }
@@ -72,4 +73,3 @@ impl Hooks for App {
         Ok(())
     }
 }
-

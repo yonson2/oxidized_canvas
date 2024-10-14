@@ -8,6 +8,9 @@ use loco_rs::prelude::*;
 use regex::Regex;
 use sea_orm::{sea_query::Order, QueryOrder};
 use serde::{Deserialize, Serialize};
+use sitemap_rs::image::Image;
+use sitemap_rs::url::{ChangeFrequency, Url};
+use sitemap_rs::url_set::UrlSet;
 
 use crate::{
     models::_entities::arts::{ActiveModel, Column, Entity, Model},
@@ -137,11 +140,49 @@ pub async fn serve_image(
         .into_response())
 }
 
+#[debug_handler]
+pub async fn sitemap(State(ctx): State<AppContext>) -> Result<Response> {
+    let ids = Model::find_ids(&ctx.db).await?;
+    //TODO: move to settings
+    let base_url = "https://imaginarygallery.net/";
+
+    //TODO: remove unwraps, don't want to be bothered converting
+    // this code has been working for a year.
+    let mut urls: Vec<Url> = vec![
+        Url::builder(String::from(base_url))
+            .change_frequency(ChangeFrequency::Daily)
+            .priority(1.0)
+            .build()
+            .expect("Valid sitemap config"),
+        Url::builder(format!("{}{}", base_url, "about"))
+            .change_frequency(ChangeFrequency::Yearly)
+            .priority(0.9)
+            .build()
+            .expect("Valid sitemap config"),
+    ];
+
+    for id in ids {
+        urls.push(
+            Url::builder(format!("{}{}", base_url, id))
+                .images(vec![Image::new(format!("{}img/{}.webp", base_url, id))])
+                .priority(0.8)
+                .change_frequency(ChangeFrequency::Yearly)
+                .build()
+                .expect("Valid sitemap url"),
+        )
+    }
+    let url_set: UrlSet = UrlSet::new(urls).expect("valid urlset");
+    let mut buf = Vec::<u8>::new();
+    url_set.write(&mut buf).expect("write urlset to buffer");
+
+    Ok((StatusCode::OK, [(header::CONTENT_TYPE, "text/xml")], buf).into_response())
+}
 pub fn index() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
         .add("/:id", get(show))
         .add("/img/:id", get(serve_image))
+        .add("/sitemap.xml", get(sitemap))
 }
 
 pub fn routes() -> Routes {
