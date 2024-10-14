@@ -1,0 +1,22 @@
+# nixpacks.toml
+providers = ['rust']
+
+[phases.setup]
+cmds = [
+  "mkdir -p target/release/",
+  "touch target/release/main",
+  "touch target/release/tool",
+]
+
+[phases.build]
+cmds = [
+  "mkdir -p bin/",
+  "mkdir -p target/release/",
+  "touch target/release/main",
+  "touch target/release/tool",
+  "cargo build --release",
+  "cp target/release/oxidized_canvas-cli bin/",
+]
+
+[start]
+cmd = './bin/oxidized_canvas-cli start'

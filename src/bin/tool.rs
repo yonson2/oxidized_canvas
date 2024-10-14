@@ -1,6 +1,6 @@
 use loco_rs::cli;
-use oxidized_canvas::app::App;
 use migration::Migrator;
+use oxidized_canvas::app::App;
 
 #[tokio::main]
 async fn main() -> loco_rs::Result<()> {

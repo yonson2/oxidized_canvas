@@ -142,9 +142,9 @@ async fn login(State(ctx): State<AppContext>, Json(params): Json<LoginParams>) -
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/auth")
-        .add("/register", post(register))
+        // .add("/register", post(register))
         .add("/verify", post(verify))
         .add("/login", post(login))
-        .add("/forgot", post(forgot))
-        .add("/reset", post(reset))
+    // .add("/forgot", post(forgot))
+    // .add("/reset", post(reset))
 }

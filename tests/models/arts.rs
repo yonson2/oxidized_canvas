@@ -1,5 +1,5 @@
-use oxidized_canvas::app::App;
 use loco_rs::testing;
+use oxidized_canvas::app::App;
 use serial_test::serial;
 
 macro_rules! configure_insta {

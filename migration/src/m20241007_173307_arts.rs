@@ -35,7 +35,4 @@ enum Arts {
     Prompt,
     Title,
     Uuid,
-    
 }
-
-

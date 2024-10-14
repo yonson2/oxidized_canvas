@@ -16,10 +16,11 @@ logger:
 
 # Web server configuration
 server:
+  binding: 0.0.0.0
   # Port on which the server will listen. the server binding is 0.0.0.0:{PORT}
   port: 5150
   # The UI hostname or IP address that mailers will point to.
-  host: http://localhost
+  host: https://imaginarygallery.net
   # Out of the box middleware configuration. to disable middleware you can changed the `enable` field to `false` of comment the middleware block
   middlewares:
     # Fallback file for not found (404) routes
@@ -202,3 +203,4 @@ auth:
 settings:
   bfl_api_key: {{ get_env(name="BFL_API_KEY", default="bfl_api_key_goes_here") }}
   anthropic_key: {{ get_env(name="ANTHROPIC_API_KEY", default="change_me") }}
+  old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}

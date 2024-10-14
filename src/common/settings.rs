@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct Settings {
     pub bfl_api_key: String,
     pub anthropic_key: String,
+    pub old_db_url: String,
 }
 
 impl Settings {
