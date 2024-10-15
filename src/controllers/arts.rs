@@ -127,7 +127,6 @@ pub async fn serve_image(
 ) -> Result<Response> {
     //TODO: support png too.
     let (id, _format) = id.extract_id().ok_or_else(|| Error::NotFound)?;
-    tracing::debug!(message = format!("{id} was extracted"), "extracting param");
     let bytes = Model::find_img_slice_by_id(&ctx.db, id).await?;
 
     Ok((
