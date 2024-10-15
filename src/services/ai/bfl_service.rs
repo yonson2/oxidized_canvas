@@ -34,7 +34,6 @@ impl ImageGenerator for BFLService {
                 "prompt": prompt,
                 "height": 1440,
                 "width": 1440,
-                "steps": 50,
                 "prompt_upsampling": true,
                 "safety_tolerance": 6
             }))?
