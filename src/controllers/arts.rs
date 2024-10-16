@@ -141,6 +141,10 @@ pub async fn serve_image(
 }
 
 #[debug_handler]
+/// `sitemap` builds a sitemap.xml for our site
+/// # Panics
+///
+/// Panics because I haven't handled the `TODO` yet.
 pub async fn sitemap(State(ctx): State<AppContext>) -> Result<Response> {
     let ids = Model::find_ids(&ctx.db).await?;
     //TODO: move to settings
@@ -163,13 +167,13 @@ pub async fn sitemap(State(ctx): State<AppContext>) -> Result<Response> {
 
     for id in ids {
         urls.push(
-            Url::builder(format!("{}{}", base_url, id))
-                .images(vec![Image::new(format!("{}img/{}.webp", base_url, id))])
+            Url::builder(format!("{base_url}{id}"))
+                .images(vec![Image::new(format!("{base_url}img/{id}.webp"))])
                 .priority(0.8)
                 .change_frequency(ChangeFrequency::Yearly)
                 .build()
                 .expect("Valid sitemap url"),
-        )
+        );
     }
     let url_set: UrlSet = UrlSet::new(urls).expect("valid urlset");
     let mut buf = Vec::<u8>::new();

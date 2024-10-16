@@ -23,7 +23,7 @@ impl Task for ImportArts {
         let db: DatabaseConnection = Database::connect(&settings.old_db_url).await?;
         let unique: Vec<Art> = Art::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Postgres,
-            r#"SELECT * FROM arts ORDER BY id ASC"#,
+            "SELECT * FROM arts ORDER BY id ASC",
             [],
         ))
         .all(&db)

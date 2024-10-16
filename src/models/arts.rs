@@ -65,7 +65,11 @@ impl super::_entities::arts::Model {
         arts.ok_or_else(|| ModelError::EntityNotFound)
     }
 
-    /// returns just the latest id (to see if we should display the "next" button)
+    /// finds just the latest id (to see if we should display the "next" button)
+    ///
+    /// # Errors
+    ///
+    /// When could not find latest art or DB query error
     pub async fn find_latest_id(db: &DatabaseConnection) -> ModelResult<i32> {
         let ArtId { id } = arts::Entity::find()
             .order_by_desc(arts::Column::CreatedAt)
@@ -80,7 +84,11 @@ impl super::_entities::arts::Model {
         Ok(id)
     }
 
-    /// returns all the ids of the created `Art`s
+    /// finds the ids of all of the created arts
+    ///
+    /// # Errors
+    ///
+    /// When could not find arts or DB query error
     pub async fn find_ids(db: &DatabaseConnection) -> ModelResult<Vec<i32>> {
         let ids = arts::Entity::find()
             .order_by_asc(arts::Column::CreatedAt)
@@ -111,6 +119,10 @@ impl super::_entities::arts::Model {
         Ok(arts)
     }
 
+    /// finds an art an returns just its base64 encoded image
+    /// # Errors
+    ///
+    /// When db fails or when the item is missing
     pub async fn find_img_slice_by_id(db: &DatabaseConnection, id: u32) -> ModelResult<Vec<u8>> {
         tracing::info!(id = id, "Id that reached the fn");
         let image = match arts::Entity::find()

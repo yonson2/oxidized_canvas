@@ -13,6 +13,7 @@ pub struct AnthropicService {
 }
 
 impl AnthropicService {
+    #[must_use]
     pub fn new(api_key: &str) -> Self {
         Self {
             api_key: api_key.to_string(),
@@ -48,7 +49,7 @@ impl TextGenerator for AnthropicService {
             .into_iter()
             .filter_map(|v| match v {
                 ContentBlock::Text { text } => Some(text),
-                _ => None,
+                ContentBlock::Image { .. } => None,
             })
             .collect::<String>();
         Ok(text)
@@ -57,12 +58,12 @@ impl TextGenerator for AnthropicService {
 
 impl From<anthropic::client::ClientBuilderError> for Error {
     fn from(value: anthropic::client::ClientBuilderError) -> Self {
-        crate::errors::Error::AIError(format!("Error building client: {value}"))
+        Self::AIError(format!("Error building client: {value}"))
     }
 }
 
 impl From<anthropic::error::AnthropicError> for Error {
     fn from(value: anthropic::error::AnthropicError) -> Self {
-        crate::errors::Error::AIError(format!("Error querying claude: {value}"))
+        Self::AIError(format!("Error querying claude: {value}"))
     }
 }

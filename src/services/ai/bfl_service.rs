@@ -16,6 +16,7 @@ pub struct BFLService {
 }
 
 impl BFLService {
+    #[must_use]
     pub fn new(endpoint: &str, api_key: &str) -> Self {
         Self {
             endpoint: endpoint.to_string(),
@@ -65,7 +66,7 @@ impl ImageGenerator for BFLService {
     }
 }
 
-/// download_file is a little helper function that takes a url and returns
+/// `download_file` is a little helper function that takes a url and returns
 /// a Vec<u8> with its contents.
 fn download_file(url: &str) -> Result<Vec<u8>, Error> {
     // Send a GET request to download the image
@@ -77,7 +78,7 @@ fn download_file(url: &str) -> Result<Vec<u8>, Error> {
     Ok(buffer)
 }
 
-/// to_webp takes in a slice of bytes of an image and converts it to `.webp`
+/// `to_webp` takes in a slice of bytes of an image and converts it to `.webp`
 fn to_webp(old: &[u8]) -> Result<Vec<u8>, Error> {
     let img = load_from_memory(old)?;
     let mut converted_img: Cursor<Vec<u8>> = Cursor::new(Vec::new());
@@ -91,19 +92,19 @@ fn to_base64(bytes: &[u8]) -> String {
 
 impl From<ureq::Error> for Error {
     fn from(value: ureq::Error) -> Self {
-        crate::errors::Error::AIError(format!("Error doing network request: {value}"))
+        Self::AIError(format!("Error doing network request: {value}"))
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
-        crate::errors::Error::AIError(format!("Error loading file to memory: {value}"))
+        Self::AIError(format!("Error loading file to memory: {value}"))
     }
 }
 
 impl From<image::ImageError> for Error {
     fn from(value: image::ImageError) -> Self {
-        crate::errors::Error::AIError(format!("Error converting file: {value}"))
+        Self::AIError(format!("Error converting file: {value}"))
     }
 }
 

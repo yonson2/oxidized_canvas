@@ -31,9 +31,8 @@ impl Task for CreateArt {
             _ => IMAGE_PROMPT.replace("{{PROMPTS}}", SAMPLE_PROMPTS),
         };
 
-        let prompt = match text_gen.generate(&image_generator_prompt).await {
-            Ok(t) => t,
-            Err(_) => return Err(loco_rs::errors::Error::Message("text_gen 1".to_string())),
+        let Ok(prompt) = text_gen.generate(&image_generator_prompt).await else {
+            return Err(loco_rs::errors::Error::Message("text_gen 1".to_string()));
         };
         println!("Prompt for image is: {prompt}");
 
@@ -52,7 +51,7 @@ impl Task for CreateArt {
             match img_gen.generate(&prompt).await {
                 Ok(i) => i,
                 Err(e) => {
-                    println!("ERROR: {}", e);
+                    println!("ERROR: {e}");
                     return Err(loco_rs::errors::Error::Message("img_gen 1".to_string()));
                 }
             },
@@ -61,9 +60,9 @@ impl Task for CreateArt {
         let art = arts::Model::create(
             &ctx.db,
             &ArtParams {
-                title,
                 image,
                 prompt,
+                title,
             },
         )
         .await?;
