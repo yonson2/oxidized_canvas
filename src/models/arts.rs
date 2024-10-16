@@ -4,6 +4,7 @@ use loco_rs::prelude::model;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
 use sea_orm::FromQueryResult;
+use sea_orm::Statement;
 use sea_orm::{entity::prelude::*, QueryOrder, QuerySelect};
 use sea_orm::{Order, TransactionTrait};
 
@@ -112,13 +113,25 @@ impl super::_entities::arts::Model {
     }
 
     pub async fn find_img_slice_by_id(db: &DatabaseConnection, id: u32) -> ModelResult<Vec<u8>> {
-        let art = arts::Entity::find()
+        tracing::info!(id = id, "Id that reached the fn");
+        let image = match arts::Entity::find()
             .filter(model::query::condition().eq(arts::Column::Id, id).build())
+            .limit(1)
+            .select_only()
+            .column(arts::Column::Image)
+            .into_partial_model::<ArtImage>()
             .one(db)
-            .await?
-            .ok_or_else(|| ModelError::EntityNotFound)?;
+            .await
+        {
+            Ok(Some(ArtImage { image })) => Ok(image),
+            Ok(None) => Err(ModelError::EntityNotFound),
+            Err(e) => {
+                tracing::error!(error = e.to_string(), "Error querying db");
+                return Err(ModelError::DbErr(e));
+            }
+        }?;
 
-        let img = match general_purpose::STANDARD.decode(art.image) {
+        let img = match general_purpose::STANDARD.decode(image) {
             Ok(bytes) => bytes,
             Err(e) => return Err(ModelError::Any(Box::new(e))),
         };
@@ -137,4 +150,10 @@ pub struct ArtParams {
 #[sea_orm(entity = "Entity")]
 struct ArtId {
     pub id: i32,
+}
+
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "Entity")]
+struct ArtImage {
+    pub image: String,
 }
