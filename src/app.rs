@@ -50,7 +50,6 @@ impl Hooks for App {
             .add_route(controllers::arts::index())
             .add_route(controllers::arts::routes())
             .add_route(controllers::auth::routes())
-            .add_route(controllers::user::routes())
     }
 
     fn connect_workers<'a>(p: &'a mut Processor, ctx: &'a AppContext) {
@@ -58,6 +57,7 @@ impl Hooks for App {
     }
 
     fn register_tasks(tasks: &mut Tasks) {
+        tasks.register(tasks::clean_titles::CleanTitles);
         tasks.register(tasks::import_arts::ImportArts);
         tasks.register(tasks::create_art::CreateArt);
         tasks.register(tasks::seed::SeedData);
@@ -73,3 +73,4 @@ impl Hooks for App {
         Ok(())
     }
 }
+

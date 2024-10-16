@@ -1,4 +1,2 @@
-pub mod auth;
-pub mod user;
-
 pub mod arts;
+pub mod auth;
