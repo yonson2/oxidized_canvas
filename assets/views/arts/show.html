@@ -9,6 +9,13 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://imaginarygallery.net/{{ item.id }}" />
 <meta property="og:image" content="https://imaginarygallery.net/img/{{ item.id}}.webp" />
+<meta
+  name="description"
+  content="Title: {{ item.title }}
+           Number: {{ item.id }}
+           Description: {{ item.prompt }}
+           Publication date: {{ item.created_at }}">
+
 {% endblock head %}
 
 {% block content %}
