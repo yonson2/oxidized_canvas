@@ -3,4 +3,3 @@
 pub mod prelude;
 
 pub mod arts;
-pub mod users;

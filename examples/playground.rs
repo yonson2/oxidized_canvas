@@ -1,7 +1,8 @@
 use oxidized_canvas::{
     common,
     services::{
-        ai::traits::ImageGenerator, ai::traits::TextGenerator, service_provider::ServiceProvider,
+        /* ai::traits::ImageGenerator */ ai::traits::TextGenerator,
+        service_provider::ServiceProvider,
     },
 };
 

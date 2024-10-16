@@ -4,7 +4,6 @@ use loco_rs::prelude::model;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
 use sea_orm::FromQueryResult;
-use sea_orm::Statement;
 use sea_orm::{entity::prelude::*, QueryOrder, QuerySelect};
 use sea_orm::{Order, TransactionTrait};
 
