@@ -13,8 +13,8 @@
   name="description"
   content="Title: {{ item.title }}
            Number: {{ item.id }}
-           Description: {{ item.prompt }}
-           Publication date: {{ item.created_at }}">
+           Description: {{ item.prompt | safe }}
+           Publication date: {{ item.created_at | date(format="%Y-%m-%d") }}">
 
 {% endblock head %}
 
