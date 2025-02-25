@@ -109,13 +109,67 @@ The title should be no longer than 27 characters (Ideally it should be quite sho
 For the following description (remember to give me *just* the title): {{DESCRIPTION}}.";
 
 const IMAGE_PROMPT: &str = "Can you create a prompt to generate a compelling and artistic image using an AI system like DALL-E 2, MidJourney, StableDiffusion...?
-The prompt should explore different types of imagery, including photographs, paintings, and descriptions of landscapes or other abstract concepts.
-While creating the prompt, keep in mind that the AI system can understand a vast range of language and interpret abstract concepts, so feel free to be as imaginative and descriptive as possible.
-However, simplicity can also be beautiful, so don't feel obligated to create complex prompts all the time, also try not to generate images over-saturated with colors and elements when they wouldn't fit the style of the image.
-From time to time, you can reference famous painters or photographers to inspire the AI system's style but make sure that you avoid repeating the same well-known ones.
-The primary aim of the prompt is to generate an image that can be considered artistic.
-Therefore, please specify the type of image you want to create, such as a photograph, painting, landscape descriptions or unique objects.
-Also, ensure that at least one in ten prompts is for a photograph.
-I'm also going to give you some previously generated prompts so you can use them to come with inspiration and also avoid being repetitive and generating the same kind of content all the time, please don't take the text I give you and repeat it, be original (don't reuse concepts or objects from the prompts below, just the ideas and concepts behind it):
+Important rules:
+1. Try NOT to use any of these overused elements:
+   - Butterflies or moths
+   - Libraries or books
+   - Lighthouses
+   - Mist/fog/ethereal scenes
+   - The words 'ethereal', 'whispers', 'ephemeral'
+   - Surrealist transformations where X turns into Y
+   - Autumn scenes
+   - Watercolors of nature
+2. Explore these less common subjects:
+   - Urban life and city rhythms
+   - Human emotions and intimate expressions
+   - Industrial and mechanical aesthetics
+   - Cultural ceremonies and traditions
+   - Scientific concepts and discoveries
+   - Historical moments and period-specific scenes
+   - Abstract geometrical compositions
+   - Architectural details and patterns
+   - Candid street photography
+   - Still life with unexpected objects
+   - Sports and movement
+   - Fashion and textile details
+   - Food and culinary arts
+   - Traditional crafts and artisanal work
+   - Musical instruments and sound visualization
+   - Maritime and underwater scenes (without being mystical)
+   - Desert landscapes and arid environments
+   - Archaeological discoveries
+   - Modern technology
+   - Dance and performance arts
+   - Weather phenomena
+   - Markets and commerce
+   - Transportation and vehicles
+   - Wildlife in action (not static poses)
+   - Medical and anatomical imagery
+   - Astronomical phenomena (without being dreamy)
+   - Medieval or renaissance scenes
+   - Construction and building processes
+   - Religious and spiritual practices
+   - Military history
+   - Agricultural scenes
+
+3. Additional requirements:
+   - Vary between different times of day (not just dawn/dusk)
+   - Use diverse color palettes (not just pastels or monochromes)
+   - Mix different artistic mediums (oil, acrylic, digital, sculpture, etc.)
+   - Include human elements when appropriate
+   - Consider different cultural perspectives
+   - Explore both macro and micro scales
+   - Balance between realistic and abstract approaches
+   - Use specific art movements (bauhaus, art deco, pop art, etc.)
+   - When using artists as reference, prioritize lesser-known or contemporary artists
+   - Include artists from diverse backgrounds and cultures
+   - One in ten prompts must be a photograph
+   - Avoid overused artistic styles (surrealism, minimalism)
+   - Don't start prompts with 'A painting of' or similar generic openings
+   - Use specific technical terms related to the medium
+   - Consider unusual viewing angles and perspectives
+
+Here are some previous prompts for context (DO NOT reuse their themes or elements):
 {{PROMPTS}}
-Please give me just the prompt surrounded by quotes and nothing more before or after it, this is EXTREMELY important. ";
+
+Please give me just the prompt surrounded by single quotes and nothing more before or after it, this is EXTREMELY important.";
