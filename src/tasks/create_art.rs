@@ -25,7 +25,7 @@ impl Task for CreateArt {
         let img_gen = ServiceProvider::img_service(&settings.bfl_api_key);
         let text_gen = ServiceProvider::txt_service(&settings.anthropic_key);
 
-        let arts = arts::Model::find_n_random(&ctx.db, 5).await?;
+        let arts = arts::Model::find_n_random(&ctx.db, 10).await?;
         let image_generator_prompt = match arts.len() {
             x if x > 1 => gen_img_prompt(&arts),
             _ => IMAGE_PROMPT.replace("{{PROMPTS}}", SAMPLE_PROMPTS),

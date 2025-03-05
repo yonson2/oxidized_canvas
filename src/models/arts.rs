@@ -111,7 +111,8 @@ impl super::_entities::arts::Model {
     /// When could not find art or DB query error
     pub async fn find_n_random(db: &DatabaseConnection, n: u64) -> ModelResult<Vec<Self>> {
         let arts = arts::Entity::find()
-            .order_by(Expr::cust("RANDOM()"), Order::Asc)
+            .order_by_desc(arts::Column::CreatedAt)
+            // .order_by(Expr::cust("RANDOM()"), Order::Asc)
             .limit(n)
             .all(db)
             .await?;
