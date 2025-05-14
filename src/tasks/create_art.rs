@@ -22,7 +22,7 @@ impl Task for CreateArt {
         let settings =
             common::settings::Settings::from_json(&ctx.config.settings.clone().ok_or(0).unwrap())?;
 
-        let img_gen = ServiceProvider::img_service(&settings.bfl_api_key);
+        let img_gen = ServiceProvider::img_service(&settings.openai_key);
         let text_gen = ServiceProvider::txt_service(&settings.anthropic_key);
 
         let arts = arts::Model::find_n_random(&ctx.db, 10).await?;

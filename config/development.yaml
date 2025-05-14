@@ -203,4 +203,5 @@ auth:
 settings:
   bfl_api_key: {{ get_env(name="BFL_API_KEY", default="bfl_api_key_goes_here") }}
   anthropic_key: {{ get_env(name="ANTHROPIC_API_KEY", default="change_me") }}
+  openai_key: {{ get_env(name="OPENAI_API_KEY", default="change_me") }}
   old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}
