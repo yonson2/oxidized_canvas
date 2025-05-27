@@ -4,8 +4,8 @@ use loco_rs::prelude::model;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
 use sea_orm::FromQueryResult;
+use sea_orm::TransactionTrait;
 use sea_orm::{entity::prelude::*, QueryOrder, QuerySelect};
-use sea_orm::{Order, TransactionTrait};
 
 pub use super::_entities::arts::{self, ActiveModel, Entity, Model};
 

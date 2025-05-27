@@ -38,7 +38,7 @@ impl TextGenerator for AnthropicService {
 
         let messages_request = MessagesRequestBuilder::default()
             .messages(messages.clone())
-            .model("claude-3-7-sonnet-latest".to_string())
+            .model("claude-sonnet-4-0".to_string())
             .max_tokens(8192_usize)
             .build()?;
 
