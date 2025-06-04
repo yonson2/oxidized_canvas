@@ -55,7 +55,7 @@ impl Task for ReplaceArt {
             art_to_replace.id, art_to_replace.title
         );
 
-        let arts = arts::Model::find_n_random(&ctx.db, 10).await?;
+        let arts = arts::Model::find_n_latest(&ctx.db, 10).await?;
         let image_generator_prompt = match arts.len() {
             x if x > 1 => gen_img_prompt(&arts),
             _ => IMAGE_PROMPT.replace("{{PROMPTS}}", SAMPLE_PROMPTS),

@@ -5,7 +5,7 @@ use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
 use sea_orm::FromQueryResult;
 use sea_orm::TransactionTrait;
-use sea_orm::{entity::prelude::*, QueryOrder, QuerySelect};
+use sea_orm::{entity::prelude::*, Order, QueryOrder, QuerySelect};
 
 pub use super::_entities::arts::{self, ActiveModel, Entity, Model};
 
@@ -111,8 +111,21 @@ impl super::_entities::arts::Model {
     /// When could not find art or DB query error
     pub async fn find_n_random(db: &DatabaseConnection, n: u64) -> ModelResult<Vec<Self>> {
         let arts = arts::Entity::find()
+            .order_by(Expr::cust("RANDOM()"), Order::Asc)
+            .limit(n)
+            .all(db)
+            .await?;
+
+        Ok(arts)
+    }
+
+    /// finds latest n arts ordered by creation date (most recent first)
+    /// # Errors
+    ///
+    /// When could not find art or DB query error
+    pub async fn find_n_latest(db: &DatabaseConnection, n: u64) -> ModelResult<Vec<Self>> {
+        let arts = arts::Entity::find()
             .order_by_desc(arts::Column::CreatedAt)
-            // .order_by(Expr::cust("RANDOM()"), Order::Asc)
             .limit(n)
             .all(db)
             .await?;

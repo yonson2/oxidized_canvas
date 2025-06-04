@@ -27,7 +27,7 @@ To enhance creativity and originality:
 - Emphasize artistic interpretation: consider different mediums (oil, watercolor, digital, ink), art movements (impressionism, art deco, surrealism - used thoughtfully), dramatic lighting, and expressive color palettes.
 - When describing, focus on the scene, style, emotion, and medium directly, rather than generic phrases like \'A painting of X\'. For instance: \'Impressionistic oil sketch of a bustling city square at twilight, capturing the fleeting light on wet cobblestones.\'
 
-Use these previous prompts for inspiration and to avoid repetition (DO NOT reuse their themes or elements directly, but learn from their structure and concepts if helpful):
+Use these recent prompts for inspiration and to actively avoid repetition - create something distinctly different from what has been generated recently (DO NOT reuse their themes, subjects, styles, or artistic movements directly. If they focus on nature, try urban scenes; if they're abstract, try realistic; if they're paintings, consider photography or digital art):
 {{PROMPTS}}
 
 Please give me *just* the prompt surrounded by single quotes and nothing more before or after it. This is EXTREMELY important. The prompt should be a concise yet descriptive instruction for an image generation AI.";
