@@ -26,10 +26,11 @@ impl Task for CreateArt {
         let img_gen = ServiceProvider::img_service(&settings.openai_key);
         let text_gen = ServiceProvider::txt_service(&settings.anthropic_key);
 
-        let arts = arts::Model::find_n_random(&ctx.db, 10).await?;
-        let image_generator_prompt = match arts.len() {
-            x if x > 1 => gen_img_prompt(&arts),
-            _ => IMAGE_PROMPT.replace("{{PROMPTS}}", SAMPLE_PROMPTS),
+        let random_arts = arts::Model::find_n_random(&ctx.db, 5).await?;
+        let latest_arts = arts::Model::find_n_latest(&ctx.db, 5).await?;
+        let image_generator_prompt = match (random_arts.len(), latest_arts.len()) {
+            (0, 0) => IMAGE_PROMPT.replace("{{PROMPTS}}", SAMPLE_PROMPTS),
+            _ => gen_img_prompt(&random_arts, &latest_arts),
         };
 
         let Ok(prompt) = text_gen.generate(&image_generator_prompt).await else {
@@ -37,11 +38,11 @@ impl Task for CreateArt {
         };
         println!("Prompt for image is: {prompt}");
 
-        let title_generator_prompt = match arts.len() {
-            x if x > 1 => gen_title_prompt(&prompt, &arts),
-            _ => TITLE_PROMPT
+        let title_generator_prompt = match (random_arts.len(), latest_arts.len()) {
+            (0, 0) => TITLE_PROMPT
                 .replace("{{TITLES}}", SAMPLE_TITLES)
                 .replace("{{DESCRIPTION}}", &prompt),
+            _ => gen_title_prompt(&prompt, &random_arts, &latest_arts),
         };
 
         let (title, image) = (
@@ -73,25 +74,41 @@ impl Task for CreateArt {
     }
 }
 
-fn gen_title_prompt(desc: &str, arts: &[arts::Model]) -> String {
-    let titles = arts
-        .iter()
-        .map(|a| a.title.clone())
-        .collect::<Vec<String>>()
-        .join(", ");
+fn gen_title_prompt(desc: &str, random_arts: &[arts::Model], latest_arts: &[arts::Model]) -> String {
+    let mut all_titles = Vec::new();
+    
+    // Collect titles from both random and latest arts
+    for art in random_arts.iter().chain(latest_arts.iter()) {
+        all_titles.push(art.title.clone());
+    }
+    
+    let titles = all_titles.join(", ");
 
     TITLE_PROMPT
         .replace("{{TITLES}}", &titles)
         .replace("{{DESCRIPTION}}", desc)
 }
 
-fn gen_img_prompt(arts: &[arts::Model]) -> String {
-    let prompts = arts
-        .iter()
-        .enumerate()
-        .map(|(i, a)| format!(" - prompt {i}: {}", a.title.clone()))
-        .collect::<Vec<String>>()
-        .join("\n");
-    IMAGE_PROMPT.replace("{{PROMPTS}}", &prompts)
+fn gen_img_prompt(random_arts: &[arts::Model], latest_arts: &[arts::Model]) -> String {
+    let mut prompts = Vec::new();
+    
+    // Add random arts for inspiration
+    if !random_arts.is_empty() {
+        prompts.push("Previous prompts for inspiration (try to vary from these):".to_string());
+        for (i, art) in random_arts.iter().enumerate() {
+            prompts.push(format!(" - inspiration {}: {}", i + 1, art.prompt.clone()));
+        }
+    }
+    
+    // Add latest arts with stronger emphasis on being different
+    if !latest_arts.is_empty() {
+        prompts.push("\nRecent prompts to actively differentiate from (be distinctly different from these):".to_string());
+        for (i, art) in latest_arts.iter().enumerate() {
+            prompts.push(format!(" - recent {}: {}", i + 1, art.prompt.clone()));
+        }
+    }
+    
+    let combined_prompts = prompts.join("\n");
+    IMAGE_PROMPT.replace("{{PROMPTS}}", &combined_prompts)
 }
 
