@@ -26,14 +26,14 @@
     <div class="flex justify-between">
       <div class="w-1/3">
         {% if item.id != 1 %}
-        <a href="{{ item.id - 1}}" class="inline-flex items-center text-sm font-medium hover:underline decoration-red-700">
+        <a id="prev-link" href="{{ item.id - 1}}" class="inline-flex items-center text-sm font-medium hover:underline decoration-red-700">
           Previous
         </a>
         {% endif %}
       </div>
       <div class="w-1/3 flex justify-end">
         {% if latest != true %}
-        <a href="/{{item.id + 1 }}" class="inline-flex items-center text-sm font-medium hover:underline decoration-red-700">
+        <a id="next-link" href="/{{item.id + 1 }}" class="inline-flex items-center text-sm font-medium hover:underline decoration-red-700">
           Next
         </a>
         {% endif %}
