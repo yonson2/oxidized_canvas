@@ -6,7 +6,7 @@ use crate::{
     models::_entities::arts,
     models::_entities::arts::ActiveModel as ArtActiveModel,
     services::{
-        ai::traits::{ImageGenerator, TextGenerator},
+        providers::{ImageProvider, TextProvider},
         service_provider::ServiceProvider,
     },
     tasks::art_prompts::{IMAGE_PROMPT, SAMPLE_PROMPTS, SAMPLE_TITLES, TITLE_PROMPT},
@@ -35,24 +35,27 @@ impl Task for ReplaceArt {
 
         println!("Attempting to replace art with ID: {}", art_id);
 
-        let settings =
-            common::settings::Settings::from_json(&ctx.config.settings.clone().ok_or_else(
-                || loco_rs::errors::Error::Message("Settings not found in AppContext".to_string()),
-            )?)?;
+        let settings = common::settings::Settings::from_json(&ctx.config.settings.clone().ok_or_else(|| loco_rs::errors::Error::Message("Settings not found in AppContext".to_string()))?)?;
 
-        let img_gen = ServiceProvider::img_service(&settings.openai_key);
-        let text_gen = ServiceProvider::txt_service(&settings.anthropic_key);
+        let img_gen = ServiceProvider::img_service(
+            &ImageProvider::OpenAI,
+            &settings.openai_key,
+            "",
+        );
+        let text_gen =
+            ServiceProvider::txt_service(&TextProvider::Anthropic, &settings.anthropic_key);
 
         let art_to_replace = arts::Entity::find_by_id(art_id)
             .one(&ctx.db)
-            .await?
+            .await? 
             .ok_or_else(|| {
                 loco_rs::errors::Error::string(&format!("Art with ID {} not found", art_id))
             })?;
 
         println!(
             "Found art: {} - {}",
-            art_to_replace.id, art_to_replace.title
+            art_to_replace.id,
+            art_to_replace.title
         );
 
         let arts = arts::Model::find_n_latest(&ctx.db, 10).await?;
@@ -115,7 +118,8 @@ impl Task for ReplaceArt {
 
         println!(
             "Successfully replaced art: {} - {}",
-            updated_art.id, updated_art.title
+            updated_art.id,
+            updated_art.title
         );
         Ok(())
     }

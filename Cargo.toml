@@ -46,6 +46,7 @@ base64 = "0.22.1"
 anthropic = "0.0.8"
 regex = "1.11.0"
 sitemap-rs = "0.2.2"
+fastrand = "2.3.0"
 
 [[bin]]
 name = "oxidized_canvas-cli"
