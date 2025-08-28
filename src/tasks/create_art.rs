@@ -24,14 +24,21 @@ impl Task for CreateArt {
             common::settings::Settings::from_json(&ctx.config.settings.clone().ok_or(0).unwrap())?;
 
         let image_provider = ImageProvider::random();
-        let (img_key, img_endpoint) = match image_provider {
-            ImageProvider::OpenAI => (settings.openai_key.clone(), "".to_string()),
-            ImageProvider::Bfl => (settings.bfl_api_key.clone(), settings.bfl_endpoint.clone()),
+        let img_key = match image_provider {
+            ImageProvider::OpenAI => settings.openai_key.clone(),
+            ImageProvider::Bfl => settings.bfl_api_key.clone(),
+            ImageProvider::Google => settings.gemini_api_key.clone(),
         };
 
-        let img_gen = ServiceProvider::img_service(&image_provider, &img_key, &img_endpoint);
-        let text_gen =
-            ServiceProvider::txt_service(&TextProvider::Anthropic, &settings.anthropic_key);
+        let text_provider = TextProvider::random();
+        let txt_key = match text_provider {
+            TextProvider::Anthropic => settings.anthropic_key.clone(),
+            TextProvider::OpenAI => settings.openai_key.clone(),
+            TextProvider::Google => settings.gemini_api_key.clone(),
+        };
+
+        let img_gen = ServiceProvider::img_service(&image_provider, &img_key);
+        let text_gen = ServiceProvider::txt_service(&text_provider, &txt_key);
 
         let random_arts = arts::Model::find_n_random(&ctx.db, 5).await?;
         let latest_arts = arts::Model::find_n_latest(&ctx.db, 5).await?;

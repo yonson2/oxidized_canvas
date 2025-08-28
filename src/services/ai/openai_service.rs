@@ -5,10 +5,11 @@ use base64::{engine::general_purpose, Engine};
 use image::{load_from_memory, ImageFormat};
 use serde::{Deserialize, Serialize};
 
-use super::traits::ImageGenerator;
+use super::traits::{ImageGenerator, TextGenerator};
 use crate::errors::Error;
 
 const OPENAI_API_ENDPOINT: &str = "https://api.openai.com/v1/images/generations";
+const OPENAI_TEXT_API_ENDPOINT: &str = "https://api.openai.com/v1/responses";
 
 pub struct OpenAIService {
     api_key: String,
@@ -40,6 +41,67 @@ struct OpenAIImageResponse {
 #[derive(Debug, Deserialize)]
 struct OpenAIImageData {
     b64_json: String,
+}
+
+#[derive(Serialize)]
+struct OpenAITextRequestPayload<'a> {
+    model: &'a str,
+    input: &'a str,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAITextResponse {
+    choices: Vec<OpenAITextChoice>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAITextChoice {
+    text: String,
+}
+
+#[async_trait]
+impl TextGenerator for OpenAIService {
+    async fn generate(&self, prompt: &str) -> Result<String, Error> {
+        let payload = OpenAITextRequestPayload {
+            model: "gpt-5",
+            input: prompt,
+        };
+
+        let response_result = ureq::post(OPENAI_TEXT_API_ENDPOINT)
+            .set("Authorization", &format!("Bearer {}", self.api_key))
+            .set("Content-Type", "application/json")
+            .send_json(ureq::json!(payload));
+
+        let response = match response_result {
+            Ok(res) => res,
+            Err(ureq::Error::Status(code, resp)) => {
+                let error_body = resp
+                    .into_string()
+                    .unwrap_or_else(|_| "Failed to read error body".to_string());
+                return Err(Error::AIError(format!(
+                    "OpenAI API request failed with status {}: {}",
+                    code, error_body
+                )));
+            }
+            Err(transport_err) => {
+                return Err(Error::AIError(format!(
+                    "OpenAI API transport error: {}",
+                    transport_err
+                )));
+            }
+        };
+
+        let text_response: OpenAITextResponse = response.into_json()?;
+
+        let text = text_response
+            .choices
+            .into_iter()
+            .next()
+            .map(|c| c.text)
+            .ok_or_else(|| Error::AIError("OpenAI response did not contain text data".to_string()))?;
+
+        Ok(text)
+    }
 }
 
 #[async_trait]
@@ -109,8 +171,4 @@ fn to_base64(bytes: &[u8]) -> String {
     general_purpose::STANDARD.encode(bytes)
 }
 
-impl From<base64::DecodeError> for Error {
-    fn from(value: base64::DecodeError) -> Self {
-        Self::AIError(format!("Base64 decoding error: {}", value))
-    }
-}
+

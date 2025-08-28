@@ -40,7 +40,6 @@ impl Task for ReplaceArt {
         let img_gen = ServiceProvider::img_service(
             &ImageProvider::OpenAI,
             &settings.openai_key,
-            "",
         );
         let text_gen =
             ServiceProvider::txt_service(&TextProvider::Anthropic, &settings.anthropic_key);

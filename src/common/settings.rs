@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct Settings {
     pub bfl_api_key: String,
-    pub bfl_endpoint: String,
     pub anthropic_key: String,
     pub openai_key: String,
+    pub gemini_api_key: String,
     pub old_db_url: String,
 }
 
