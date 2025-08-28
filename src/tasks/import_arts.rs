@@ -36,6 +36,7 @@ impl Task for ImportArts {
                     title: a.title.clone(),
                     image: a.image,
                     prompt: a.prompt,
+                    model: a.model,
                 },
             )
             .await?;
@@ -53,4 +54,5 @@ struct Art {
     pub image: String,
     pub created_at: DateTime<Utc>,
     pub uuid: Uuid,
+    pub model: Option<String>,
 }

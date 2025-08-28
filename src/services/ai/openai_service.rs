@@ -98,7 +98,9 @@ impl TextGenerator for OpenAIService {
             .into_iter()
             .next()
             .map(|c| c.text)
-            .ok_or_else(|| Error::AIError("OpenAI response did not contain text data".to_string()))?;
+            .ok_or_else(|| {
+                Error::AIError("OpenAI response did not contain text data".to_string())
+            })?;
 
         Ok(text)
     }
@@ -106,6 +108,9 @@ impl TextGenerator for OpenAIService {
 
 #[async_trait]
 impl ImageGenerator for OpenAIService {
+    fn model_name(&self) -> String {
+        "OpenAI: gpt-image-1".into()
+    }
     async fn generate(&self, prompt: &str) -> Result<String, Error> {
         let payload = OpenAIImageRequestPayload {
             model: "gpt-image-1",
@@ -170,5 +175,3 @@ fn to_webp(image_bytes: &[u8]) -> Result<Vec<u8>, Error> {
 fn to_base64(bytes: &[u8]) -> String {
     general_purpose::STANDARD.encode(bytes)
 }
-
-

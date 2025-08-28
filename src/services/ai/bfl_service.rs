@@ -27,6 +27,9 @@ impl BFLService {
 
 #[async_trait]
 impl ImageGenerator for BFLService {
+    fn model_name(&self) -> String {
+        "BFL: Flux Kontext Pro".into()
+    }
     async fn generate(&self, prompt: &str) -> Result<String, Error> {
         let req: GenerateResponse = ureq::post(BFL_ENDPOINT)
             .set("accept", "application/json")

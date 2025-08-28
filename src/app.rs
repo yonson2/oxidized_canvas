@@ -3,13 +3,13 @@ use std::path::Path;
 use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks, Initializer},
+    // AppWorker,
+    bgworker::{BackgroundWorker, Queue},
     boot::{create_app, BootResult, StartMode},
     controller::AppRoutes,
     // db::{self, truncate_table},
     environment::Environment,
     task::Tasks,
-    // AppWorker,
-    worker::Processor,
     Result,
 };
 use migration::Migrator;
@@ -50,8 +50,9 @@ impl Hooks for App {
             .add_route(controllers::arts::routes())
     }
 
-    fn connect_workers<'a>(_p: &'a mut Processor, _ctx: &'a AppContext) {
-        // p.register(DownloadWorker::build(ctx));
+    async fn connect_workers(_ctx: &AppContext, _queue: &Queue) -> Result<()> {
+        //     queue.register(DownloadWorker::build(ctx)).await?;
+        Ok(())
     }
 
     fn register_tasks(tasks: &mut Tasks) {

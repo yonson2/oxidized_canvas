@@ -43,7 +43,9 @@ struct ResponseContent {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 enum ResponsePart {
-    Text { text: String },
+    Text {
+        text: String,
+    },
     InlineData {
         #[serde(rename = "inlineData")]
         inline_data: InlineData,
@@ -113,6 +115,9 @@ impl TextGenerator for GoogleService {
 
 #[async_trait]
 impl ImageGenerator for GoogleService {
+    fn model_name(&self) -> String {
+        "Google: gemini-2.5-flash-image".into()
+    }
     async fn generate(&self, prompt: &str) -> Result<String, Error> {
         let payload = ureq::json!({
             "contents": [{
@@ -155,13 +160,10 @@ impl ImageGenerator for GoogleService {
             .into_iter()
             .next()
             .and_then(|c| {
-                c.content
-                    .parts
-                    .into_iter()
-                    .find_map(|p| match p {
-                        ResponsePart::InlineData { inline_data } => Some(inline_data.data),
-                        _ => None,
-                    })
+                c.content.parts.into_iter().find_map(|p| match p {
+                    ResponsePart::InlineData { inline_data } => Some(inline_data.data),
+                    _ => None,
+                })
             })
             .ok_or_else(|| {
                 Error::AIError("Google API response did not contain image data".to_string())
@@ -185,5 +187,3 @@ fn to_webp(image_bytes: &[u8]) -> Result<Vec<u8>, Error> {
 fn to_base64(bytes: &[u8]) -> String {
     general_purpose::STANDARD.encode(bytes)
 }
-
-

@@ -169,6 +169,7 @@ pub struct ArtParams {
     pub image: String,
     pub prompt: String,
     pub title: String,
+    pub model: Option<String>,
 }
 
 #[derive(DerivePartialModel, FromQueryResult)]

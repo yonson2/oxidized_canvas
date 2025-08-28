@@ -79,6 +79,7 @@ impl Task for CreateArt {
                 image,
                 prompt,
                 title,
+                model: Some(img_gen.model_name()),
             },
         )
         .await?;
