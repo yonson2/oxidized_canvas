@@ -466,7 +466,7 @@ dependencies = [
  "axum-macros",
  "bytes",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "hyper 1.6.0",
@@ -499,7 +499,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "mime",
@@ -522,7 +522,7 @@ dependencies = [
  "bytes",
  "cookie",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "mime",
@@ -558,7 +558,7 @@ dependencies = [
  "bytes",
  "bytesize",
  "cookie",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body-util",
  "hyper 1.6.0",
  "hyper-util",
@@ -2176,9 +2176,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "1.1.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21b9ddb458710bc376481b842f5da65cdf31522de232c1ca8146abce2a358258"
+checksum = "f4a85d31aea989eead29a3aaf9e1115a180df8282431156e533de47660892565"
 dependencies = [
  "bytes",
  "fnv",
@@ -2203,7 +2203,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1efedce1fb8e6913f23e0c92de8e62cd5b772a67e7b3946df930a62566c93184"
 dependencies = [
  "bytes",
- "http 1.1.0",
+ "http 1.3.1",
 ]
 
 [[package]]
@@ -2214,7 +2214,7 @@ checksum = "793429d76616a256bcb62c2a2ec2bed781c8307e797e2598c50010f2bee2544f"
 dependencies = [
  "bytes",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "pin-project-lite",
 ]
@@ -2285,7 +2285,7 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "httparse",
  "httpdate",
@@ -2319,7 +2319,7 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "hyper 1.6.0",
  "pin-project-lite",
@@ -2763,15 +2763,14 @@ dependencies = [
 
 [[package]]
 name = "loco-gen"
-version = "0.11.2"
+version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "050f9b5400cea15d723a31678ca26d4bbb4238e074db9ff7ca757cd493d0b92d"
+checksum = "b918975ceca60b4fc09180b0431efbe236c7b9cf29393130cac7572ba22c7cc4"
 dependencies = [
  "chrono",
  "clap",
  "dialoguer",
  "duct",
- "lazy_static",
  "regex",
  "rrgen",
  "serde",
@@ -2839,9 +2838,9 @@ dependencies = [
 
 [[package]]
 name = "loco-rs"
-version = "0.11.2"
+version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4e62b51693334cfe6ab3153cd159da45085c4b02d5d54f085fe9344d0a65a85"
+checksum = "bda11695a517c1a51e5ac44eb4ea8b76d593c29544ca4523d8885279d0adfa22"
 dependencies = [
  "argon2",
  "async-trait",
@@ -2866,7 +2865,6 @@ dependencies = [
  "include_dir",
  "ipnetwork",
  "jsonwebtoken",
- "lazy_static",
  "lettre",
  "loco-gen",
  "mime",
@@ -2885,8 +2883,11 @@ dependencies = [
  "sqlx",
  "tera",
  "thiserror 1.0.64",
+ "thousands",
  "tokio",
  "tokio-cron-scheduler",
+ "tokio-util",
+ "toml",
  "tower 0.4.13",
  "tower-http 0.6.6",
  "tracing",
@@ -3220,7 +3221,7 @@ dependencies = [
  "itertools 0.13.0",
  "parking_lot",
  "percent-encoding",
- "snafu 0.8.7",
+ "snafu 0.8.8",
  "tokio",
  "tracing",
  "url",
@@ -3304,7 +3305,7 @@ dependencies = [
  "image",
  "include_dir",
  "insta",
- "loco-rs 0.11.2",
+ "loco-rs 0.13.2",
  "migration",
  "regex",
  "rstest",
@@ -4119,12 +4120,11 @@ dependencies = [
 
 [[package]]
 name = "reserve-port"
-version = "2.0.1"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9838134a2bfaa8e1f40738fcc972ac799de6e0e06b5157acb95fc2b05a0ea283"
+checksum = "21918d6644020c6f6ef1993242989bf6d4952d2e025617744f184c02df51c356"
 dependencies = [
- "lazy_static",
- "thiserror 1.0.64",
+ "thiserror 2.0.16",
 ]
 
 [[package]]
@@ -4193,9 +4193,9 @@ dependencies = [
 
 [[package]]
 name = "rrgen"
-version = "0.5.3"
+version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e40013551787f9f535e7dbc8dafc164591d941aeae48881a385d8b0393dd45f6"
+checksum = "ee7a7ede035354391a37e42aa4935b3d8921f0ded896d2ce44bb1a3b6dd76bab"
 dependencies = [
  "cruet",
  "fs-err",
@@ -5076,11 +5076,11 @@ dependencies = [
 
 [[package]]
 name = "snafu"
-version = "0.8.7"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0062a372b26c4a6e9155d099a3416d732514fd47ae2f235b3695b820afcee74a"
+checksum = "4800ae0e2ebdfaea32ffb9745642acdc378740dcbd74d3fb3cd87572a34810c6"
 dependencies = [
- "snafu-derive 0.8.7",
+ "snafu-derive 0.8.8",
 ]
 
 [[package]]
@@ -5097,9 +5097,9 @@ dependencies = [
 
 [[package]]
 name = "snafu-derive"
-version = "0.8.7"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e5fd9e3263fc19d73abd5107dbd4d43e37949212d2b15d4d334ee5db53022b8"
+checksum = "186f5ba9999528053fb497fdf0dd330efcc69cfe4ad03776c9d704bc54fee10f"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -5604,6 +5604,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "thousands"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3bf63baf9f5039dadc247375c29eb13706706cfde997d0330d05aa63a77d8820"
+
+[[package]]
 name = "thread_local"
 version = "1.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5847,7 +5853,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "http-range-header",
@@ -5874,7 +5880,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "http 1.1.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "http-range-header",

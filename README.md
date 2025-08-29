@@ -3,3 +3,7 @@
 This is the current backend for [Imaginary Gallery](https://imaginarygallery.net), a rust rewrite of the previous rust rewrite.
 
 Used as an attempt to test out [loco](https://loco.rs)
+
+### Troubleshooting
+
+To edit a model, first generate the migration with cargo loco, then, run the migration and do `cargo loco db entities`

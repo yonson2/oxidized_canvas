@@ -11,7 +11,7 @@ default-run = "oxidized_canvas-cli"
 
 [dependencies]
 
-loco-rs = { version = "0.11" }
+loco-rs = { version = "0.13.2" }
 migration = { path = "migration" }
 
 serde = { version = "1", features = ["derive"] }
@@ -62,5 +62,5 @@ required-features = []
 [dev-dependencies]
 serial_test = "3.1.1"
 rstest = "0.21.0"
-loco-rs = { version = "0.11", features = ["testing"] }
+loco-rs = { version = "0.13.2", features = ["testing"] }
 insta = { version = "1.34.0", features = ["redactions", "yaml", "filters"] }

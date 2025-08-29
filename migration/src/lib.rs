@@ -15,6 +15,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000001_users::Migration),
             Box::new(m20241007_173307_arts::Migration),
             Box::new(m20250828_101518_add_model_to_arts::Migration),
+            // inject-above (do not remove this comment)
         ]
     }
 }
+

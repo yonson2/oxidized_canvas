@@ -60,6 +60,7 @@ impl Hooks for App {
         tasks.register(tasks::import_arts::ImportArts);
         tasks.register(tasks::create_art::CreateArt);
         tasks.register(tasks::seed::SeedData);
+        // tasks-inject (do not remove)
     }
 
     async fn truncate(_db: &DatabaseConnection) -> Result<()> {
