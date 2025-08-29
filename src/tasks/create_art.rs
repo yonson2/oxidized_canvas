@@ -1,3 +1,4 @@
+use loco_rs::errors::Error;
 use loco_rs::prelude::*;
 
 use crate::{
@@ -47,9 +48,11 @@ impl Task for CreateArt {
             _ => gen_img_prompt(&random_arts, &latest_arts),
         };
 
-        let Ok(prompt) = text_gen.generate(&image_generator_prompt).await else {
-            return Err(loco_rs::errors::Error::Message("text_gen 1".to_string()));
-        };
+        let prompt = text_gen
+            .generate(&image_generator_prompt)
+            .await
+            .map_err(|e| Error::Message(format!("Unable to generate prompt for image: {e}")))?;
+
         println!("Prompt for image is: {{prompt}}");
 
         let title_generator_prompt = match (random_arts.len(), latest_arts.len()) {
@@ -59,19 +62,15 @@ impl Task for CreateArt {
             _ => gen_title_prompt(&prompt, &random_arts, &latest_arts),
         };
 
-        let (title, image) = (
-            match text_gen.generate(&title_generator_prompt).await {
-                Ok(t) => t,
-                Err(_) => return Err(loco_rs::errors::Error::Message("text_gen 2".to_string())),
-            },
-            match img_gen.generate(&prompt).await {
-                Ok(i) => i,
-                Err(e) => {
-                    println!("ERROR: {e}");
-                    return Err(loco_rs::errors::Error::Message("img_gen 1".to_string()));
-                }
-            },
-        );
+        let title = text_gen
+            .generate(&title_generator_prompt)
+            .await
+            .map_err(|e| Error::Message(format!("Unable to generate title: {e}")))?;
+
+        let image = img_gen
+            .generate(&prompt)
+            .await
+            .map_err(|e| Error::Message(format!("Unable to generate image: {e}")))?;
 
         let art = arts::Model::create(
             &ctx.db,
