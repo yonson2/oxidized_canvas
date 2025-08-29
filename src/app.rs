@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks, Initializer},
     // AppWorker,
-    bgworker::{BackgroundWorker, Queue},
+    bgworker::Queue,
     boot::{create_app, BootResult, StartMode},
     controller::AppRoutes,
     // db::{self, truncate_table},
@@ -45,9 +45,7 @@ impl Hooks for App {
     }
 
     fn routes(_ctx: &AppContext) -> AppRoutes {
-        AppRoutes::with_default_routes()
-            .add_route(controllers::arts::index())
-            .add_route(controllers::arts::routes())
+        AppRoutes::with_default_routes().add_route(controllers::arts::index())
     }
 
     async fn connect_workers(_ctx: &AppContext, _queue: &Queue) -> Result<()> {
