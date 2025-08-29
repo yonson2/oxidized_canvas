@@ -5,6 +5,7 @@ use axum::debug_handler;
 use axum::http::{header, StatusCode};
 use loco_rs::prelude::*;
 use regex::Regex;
+use serde::Deserialize;
 use sitemap_rs::image::Image;
 use sitemap_rs::url::{ChangeFrequency, Url};
 use sitemap_rs::url_set::UrlSet;
@@ -13,6 +14,11 @@ use crate::{
     models::_entities::arts::{Entity, Model},
     views,
 };
+
+#[derive(Debug, Deserialize)]
+pub struct MixParams {
+    art_ids: Vec<i32>,
+}
 
 // #[derive(Clone, Debug, Serialize, Deserialize)]
 // pub struct Params {
@@ -47,6 +53,29 @@ pub async fn show(
     let latest = latest_id == item.id;
 
     views::arts::show(&v, &item, latest)
+}
+
+#[debug_handler]
+pub async fn show_mix(
+    ViewEngine(v): ViewEngine<TeraView>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let title_ids = Model::fetch_all_title_ids(&ctx.db).await?;
+    views::arts::show_mix(&v, &title_ids)
+}
+
+#[debug_handler]
+pub async fn create_mix(
+    State(_ctx): State<AppContext>,
+    Json(params): Json<MixParams>,
+) -> Result<Response> {
+    println!("Selected art IDs for mix: {:?}", params.art_ids);
+
+    Ok((
+        StatusCode::SEE_OTHER,
+        [(header::LOCATION, "/")],
+        "Redirecting to mix result..."
+    ).into_response())
 }
 
 #[debug_handler]
@@ -119,10 +148,11 @@ pub async fn sitemap(State(ctx): State<AppContext>) -> Result<Response> {
 
     Ok((StatusCode::OK, [(header::CONTENT_TYPE, "text/xml")], buf).into_response())
 }
-pub fn index() -> Routes {
+pub fn routes() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
         .add("/:id", get(show))
+        .add("/mix", get(show_mix).post(create_mix))
         .add("/img/:id", get(serve_image))
         .add("/sitemap.xml", get(sitemap))
 }

@@ -6,6 +6,8 @@ use loco_rs::prelude::ModelError;
 use sea_orm::FromQueryResult;
 use sea_orm::TransactionTrait;
 use sea_orm::{entity::prelude::*, Order, QueryOrder, QuerySelect};
+use serde::Deserialize;
+use serde::Serialize;
 
 pub use super::_entities::arts::{self, ActiveModel, Entity, Model};
 
@@ -138,7 +140,6 @@ impl super::_entities::arts::Model {
     ///
     /// When db fails or when the item is missing
     pub async fn find_img_slice_by_id(db: &DatabaseConnection, id: u32) -> ModelResult<Vec<u8>> {
-        tracing::info!(id = id, "Id that reached the fn");
         let image = match arts::Entity::find()
             .filter(model::query::condition().eq(arts::Column::Id, id).build())
             .limit(1)
@@ -163,6 +164,18 @@ impl super::_entities::arts::Model {
 
         Ok(img)
     }
+
+    pub async fn fetch_all_title_ids(db: &DatabaseConnection) -> ModelResult<Vec<ArtTitleId>> {
+        let title_ids = arts::Entity::find()
+            .select_only()
+            .columns([arts::Column::Id, arts::Column::Title])
+            .order_by_desc(arts::Column::CreatedAt)
+            .into_partial_model::<ArtTitleId>()
+            .all(db)
+            .await?;
+
+        Ok(title_ids)
+    }
 }
 
 pub struct ArtParams {
@@ -182,4 +195,11 @@ struct ArtId {
 #[sea_orm(entity = "Entity")]
 struct ArtImage {
     pub image: String,
+}
+
+#[derive(DerivePartialModel, FromQueryResult, Serialize, Deserialize)]
+#[sea_orm(entity = "Entity")]
+pub struct ArtTitleId {
+    pub id: i32,
+    pub title: String,
 }

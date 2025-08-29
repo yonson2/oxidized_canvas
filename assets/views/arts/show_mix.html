@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create a new Mix - ImaginaryGallery
+{% endblock title %}
+
+{% block head %}
+<meta property="og:title" content="Create a new mix - ImaginaryGallery" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://imaginarygallery.net/mix" />
+<meta name="description" content="Create a new image based on a selection of the images available on imaginary gallery">
+
+<link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<style>
+.choices {
+  background-color: rgb(24 24 27) !important;
+}
+.choices__inner {
+  background-color: rgb(24 24 27) !important;
+  border: 1px solid #374151 !important;
+  border-radius: 0.5rem !important;
+  color: white !important;
+}
+.choices__input {
+  background-color: rgb(24 24 27) !important;
+  color: white !important;
+}
+.choices__placeholder {
+  color: #9ca3af !important;
+}
+.choices__list--dropdown {
+  background-color: rgb(24 24 27) !important;
+  border: 1px solid #374151 !important;
+}
+.choices__item--choice {
+  background-color: rgb(31 41 55) !important;
+  color: white !important;
+  border-radius: 0 !important;
+}
+.choices__item--choice:hover,
+.choices__item--choice.is-highlighted {
+  background-color: rgb(24 24 27) !important;
+  color: white !important;
+}
+.choices__item {
+  background-color: rgb(39 39 42) !important;
+  color: white !important;
+  border-radius: 0.0rem !important;
+}
+.choices__button {
+  background-color: transparent !important;
+  border: none !important;
+  color: white !important;
+  opacity: 0.7;
+}
+.choices__button:hover {
+  opacity: 1;
+}
+</style>
+
+
+
+{% endblock head %}
+
+{% block content %}
+<div class="flex items-center justify-center flex-col">
+  <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> Which images would you like to mix? </h1>
+  <form method="POST" action="/mix" id="mix-form" class="w-full flex flex-col items-center">
+    <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5">
+      <select id="art-select" name="art_ids[]" class="w-full p-4 rounded-lg bg-zinc-900 text-white font-medium" multiple>
+        {% for art in title_ids %}
+          <option value="{{ art.id }}" data-custom-properties='{"id": "{{ art.id }}"}' data-label="# {{ art.id }}"># {{ art.id }} - {{ art.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <nav class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 px-4 sm:px-6 pt-6 dark:text-slate-100">
+      <div class="flex justify-center">
+        <button type="submit" id="mix-button" class="bg-rose-800 hover:bg-rose-700 text-white font-medium py-3 px-6 rounded-lg">
+          Mix!
+        </button>
+      </div>
+    </nav>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const element = document.getElementById('art-select');
+  const form = document.getElementById('mix-form');
+  
+  const choices = new Choices(element, {
+    removeItemButton: true,
+    placeholder: true,
+    placeholderValue: 'Select images to mix...',
+    searchEnabled: true,
+    itemSelectText: '',
+    callbackOnCreateTemplates: function(template) {
+      return {
+        item: ({ classNames }, data) => {
+          return template(`
+            <div class="${classNames.item} ${data.highlighted ? classNames.highlightedState : classNames.itemSelectable}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
+              <span>#${data.value}</span>
+              <button type="button" class="${classNames.button}" data-button>Remove item</button>
+            </div>
+          `);
+        }
+      };
+    }
+  });
+  
+  // Handle form submission
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const selectedValues = choices.getValue(true);
+    const artIds = selectedValues.map(id => parseInt(id));
+    
+    console.log('Sending art IDs:', artIds);
+    
+    fetch('/mix', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        art_ids: artIds
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        // Redirect to the response URL or a default success page
+        window.location.href = response.url || '/';
+      } else {
+        console.error('Error creating mix');
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  });
+});
+</script>
+
+{% endblock content %}
