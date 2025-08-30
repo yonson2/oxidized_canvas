@@ -57,6 +57,78 @@ Create a new Mix - ImaginaryGallery
 .choices__button:hover {
   opacity: 1;
 }
+
+.loader {
+  display: none;
+  width: 0;
+  height: 4.8px;
+  position: relative;
+  background: #FFF;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  animation: animFw 90s linear infinite;
+  margin: 4rem auto;
+}
+
+.loader::after,
+.loader::before {
+  content: '';
+  width: 10px;
+  height: 1px;
+  background: #FFF;
+  position: absolute;
+  top: 9px;
+  right: -2px;
+  opacity: 0;
+  transform: rotate(-45deg) translateX(0px);
+  box-sizing: border-box;
+  animation: coli1 0.3s linear infinite;
+}
+
+.loader::before {
+  top: -4px;
+  transform: rotate(45deg);
+  animation: coli2 0.3s linear infinite;
+}
+
+@keyframes animFw {
+  0% {
+    width: 0;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes coli1 {
+  0% {
+    transform: rotate(-45deg) translateX(0px);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: rotate(-45deg) translateX(-45px);
+    opacity: 0;
+  }
+}
+
+@keyframes coli2 {
+  0% {
+    transform: rotate(45deg) translateX(0px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(45deg) translateX(-45px);
+    opacity: 0.7;
+  }
+}
+
+.form-disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
 </style>
 
 
@@ -77,9 +149,10 @@ Create a new Mix - ImaginaryGallery
     <nav class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 px-4 sm:px-6 pt-6 dark:text-slate-100">
       <div class="flex justify-center">
         <button type="submit" id="mix-button" class="bg-rose-800 hover:bg-rose-700 text-white font-medium py-3 px-6 rounded-lg">
-          Mix!
+          <span id="button-text">Mix!</span>
         </button>
       </div>
+      <div id="loader" class="loader"></div>
     </nav>
   </form>
 </div>
@@ -115,6 +188,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const selectedValues = choices.getValue(true);
     const artIds = selectedValues.map(id => parseInt(id));
+    const button = document.getElementById('mix-button');
+    const buttonText = document.getElementById('button-text');
+    const loader = document.getElementById('loader');
+    
+    // Disable form and show loading state
+    form.classList.add('form-disabled');
+    button.disabled = true;
+    buttonText.textContent = 'Mixing...';
+    loader.style.display = 'block';
     
     console.log('Sending art IDs:', artIds);
     
@@ -132,10 +214,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Redirect to the response URL or a default success page
         window.location.href = response.url || '/';
       } else {
+        // Re-enable form on error
+        form.classList.remove('form-disabled');
+        button.disabled = false;
+        buttonText.textContent = 'Mix!';
+        loader.style.display = 'none';
         console.error('Error creating mix');
       }
     })
     .catch((error) => {
+      // Re-enable form on error
+      form.classList.remove('form-disabled');
+      button.disabled = false;
+      buttonText.textContent = 'Mix!';
+      loader.style.display = 'none';
       console.error('Error:', error);
     });
   });

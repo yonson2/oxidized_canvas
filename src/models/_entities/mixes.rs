@@ -4,7 +4,7 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "arts")]
+#[sea_orm(table_name = "mixes")]
 pub struct Model {
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
@@ -14,8 +14,7 @@ pub struct Model {
     pub prompt: String,
     pub title: String,
     pub uuid: Uuid,
-    #[sea_orm(column_type = "Text", nullable)]
-    pub model: Option<String>,
+    pub model: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

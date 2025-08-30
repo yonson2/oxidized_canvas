@@ -17,13 +17,13 @@ impl ActiveModelBehavior for super::_entities::arts::ActiveModel {
     where
         C: ConnectionTrait,
     {
+        let mut this = self;
         if insert {
-            let mut this = self;
             this.uuid = ActiveValue::Set(Uuid::new_v4());
-            Ok(this)
-        } else {
-            Ok(self)
+        } else if this.updated_at.is_unchanged() {
+            this.updated_at = ActiveValue::Set(chrono::Utc::now().into());
         }
+        Ok(this)
     }
 }
 
@@ -64,6 +64,7 @@ impl super::_entities::arts::Model {
             image: ActiveValue::set(params.image.to_string()),
             prompt: ActiveValue::set(params.prompt.to_string()),
             title: ActiveValue::set(params.title.to_string()),
+            model: ActiveValue::set(params.model.clone()),
             ..Default::default()
         }
         .insert(&txn)
