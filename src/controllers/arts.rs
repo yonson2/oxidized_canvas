@@ -4,7 +4,6 @@
 use axum::debug_handler;
 use axum::http::{header, StatusCode};
 use loco_rs::prelude::*;
-use regex::Regex;
 use sitemap_rs::image::Image;
 use sitemap_rs::url::{ChangeFrequency, Url};
 use sitemap_rs::url_set::UrlSet;
@@ -13,6 +12,8 @@ use crate::{
     models::_entities::arts::{Entity, Model},
     views,
 };
+
+use super::utils::ExtractId;
 
 async fn load_item(ctx: &AppContext, id: i32) -> Result<Model> {
     let item = Entity::find_by_id(id).one(&ctx.db).await?;
@@ -108,29 +109,4 @@ pub fn routes() -> Routes {
         .add("/:id", get(show))
         .add("/img/:id", get(serve_image))
         .add("/sitemap.xml", get(sitemap))
-}
-
-trait ExtractId {
-    fn extract_id(&self) -> Option<(u32, ImageFormat)>;
-}
-
-impl ExtractId for String {
-    fn extract_id(&self) -> Option<(u32, ImageFormat)> {
-        let re = Regex::new(r"^(\d+)(\.png|.webp)$").unwrap();
-        let captures = re.captures(self)?;
-
-        let id = captures.get(1)?.as_str().parse::<u32>().ok()?;
-        let format = match captures.get(2)?.as_str() {
-            ".png" => Some(ImageFormat::Png),
-            ".webp" => Some(ImageFormat::WebP),
-            _ => None,
-        }?;
-
-        Some((id, format))
-    }
-}
-
-enum ImageFormat {
-    Png,
-    WebP,
 }

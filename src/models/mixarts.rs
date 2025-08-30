@@ -1,7 +1,7 @@
 use super::_entities::mixarts::{self, ActiveModel, Entity};
 use loco_rs::model::ModelResult;
 use sea_orm::FromQueryResult;
-use sea_orm::{entity::prelude::*, ActiveValue, QueryOrder, QuerySelect, TransactionTrait};
+use sea_orm::{entity::prelude::*, ActiveValue, QuerySelect, TransactionTrait};
 pub type Mixarts = Entity;
 
 #[async_trait::async_trait]
@@ -54,15 +54,14 @@ impl super::_entities::mixarts::Model {
     /// When could not save the art into the DB
     pub async fn find_art_ids(db: &DatabaseConnection, mix_id: i32) -> ModelResult<Vec<i32>> {
         let ids = mixarts::Entity::find()
-            .order_by_asc(mixarts::Column::CreatedAt)
-            .select_only()
             .filter(mixarts::Column::MixId.eq(mix_id))
+            .select_only()
             .column(mixarts::Column::ArtId)
             .into_partial_model::<ArtId>()
             .all(db)
             .await?
             .iter()
-            .map(|a| a.id)
+            .map(|a| a.art_id)
             .collect();
 
         Ok(ids)
@@ -77,5 +76,5 @@ pub struct MixArtParams {
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "Entity")]
 struct ArtId {
-    pub id: i32,
+    pub art_id: i32,
 }

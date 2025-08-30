@@ -8,7 +8,7 @@
 <meta property="og:title" content="{{ item.title }}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://imaginarygallery.net/{{ item.id }}" />
-<meta property="og:image" content="https://imaginarygallery.net/img/{{ item.id}}.webp" />
+<meta property="og:image" content="https://imaginarygallery.net/mix/img/{{ item.id}}.webp" />
 <meta name="description" content="{{ item.id}} - {{ item.title }} {{ item.created_at | date(format="%Y-%m-%d") }}">
 <meta name="keywords" content="{{ item.prompt }}">
 
@@ -20,7 +20,7 @@
 <div class="flex items-center justify-center flex-col">
   <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
   <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
-    <img class="object-contain sm:rounded-md" src="/img/{{item.id}}.webp" alt=""/>
+    <img class="object-contain sm:rounded-md" src="/mix/img/{{item.id}}.webp" alt=""/>
   </div>
     <nav class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 px-4 sm:px-6 pt-6 dark:text-slate-100">
     <div class="flex justify-center">

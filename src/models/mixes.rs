@@ -1,6 +1,9 @@
 use super::_entities::mixes::{self, ActiveModel, Entity};
-use loco_rs::model::ModelResult;
-use sea_orm::{entity::prelude::*, ActiveValue, TransactionTrait};
+use base64::engine::general_purpose;
+use base64::Engine;
+use loco_rs::model::{self, ModelError, ModelResult};
+use sea_orm::FromQueryResult;
+use sea_orm::{entity::prelude::*, ActiveValue, QuerySelect, TransactionTrait};
 pub type Mixes = Entity;
 
 #[async_trait::async_trait]
@@ -45,6 +48,36 @@ impl super::_entities::mixes::Model {
 
         Ok(art)
     }
+
+    /// finds an art an returns just its base64 encoded image
+    /// # Errors
+    ///
+    /// When db fails or when the item is missing
+    pub async fn find_img_slice_by_id(db: &DatabaseConnection, id: u32) -> ModelResult<Vec<u8>> {
+        let image = match mixes::Entity::find()
+            .filter(model::query::condition().eq(mixes::Column::Id, id).build())
+            .limit(1)
+            .select_only()
+            .column(mixes::Column::Image)
+            .into_partial_model::<MixImage>()
+            .one(db)
+            .await
+        {
+            Ok(Some(MixImage { image })) => Ok(image),
+            Ok(None) => Err(ModelError::EntityNotFound),
+            Err(e) => {
+                tracing::error!(error = e.to_string(), "Error querying db");
+                return Err(ModelError::DbErr(e));
+            }
+        }?;
+
+        let img = match general_purpose::STANDARD.decode(image) {
+            Ok(bytes) => bytes,
+            Err(e) => return Err(ModelError::Any(Box::new(e))),
+        };
+
+        Ok(img)
+    }
 }
 
 pub struct MixParams {
@@ -52,4 +85,10 @@ pub struct MixParams {
     pub prompt: String,
     pub title: String,
     pub model: String,
+}
+
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "Entity")]
+struct MixImage {
+    pub image: String,
 }

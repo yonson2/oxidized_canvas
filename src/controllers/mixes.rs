@@ -24,12 +24,15 @@ use crate::{
     views,
 };
 
+use super::utils::ExtractId;
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/mix")
         .add("/", get(show_form))
         .add("/", post(create))
         .add("/:id", get(show))
+        .add("/img/:id", get(serve_image))
 }
 
 #[derive(Debug, Deserialize)]
@@ -49,7 +52,8 @@ pub async fn show(
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let item = load_item(&ctx, id).await?;
-    let ids = mixarts::Model::find_art_ids(&ctx.db, id).await?;
+    let mut ids = mixarts::Model::find_art_ids(&ctx.db, id).await?;
+    ids.sort();
 
     views::mixes::show(&v, &item, &ids)
 }
@@ -130,6 +134,26 @@ pub async fn create(
         StatusCode::SEE_OTHER,
         [(header::LOCATION, format!("/mix/{}", mix.id))],
         "Redirecting to mix result...",
+    )
+        .into_response())
+}
+
+#[debug_handler]
+pub async fn serve_image(
+    Path(id): Path<String>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    //TODO: support png too.
+    let (id, _format) = id.extract_id().ok_or_else(|| Error::NotFound)?;
+    let bytes = mixes::Model::find_img_slice_by_id(&ctx.db, id).await?;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/webp"),
+            (header::CACHE_CONTROL, "max-age=31536000"),
+        ],
+        bytes,
     )
         .into_response())
 }
