@@ -8,6 +8,7 @@ use super::{
     },
     providers::{ImageProvider, TextProvider},
 };
+use crate::common::settings::Settings;
 
 pub struct ServiceProvider {}
 
@@ -29,5 +30,27 @@ impl ServiceProvider {
             TextProvider::OpenAI => Box::new(OpenAIService::new(key)),
             TextProvider::Google => Box::new(GoogleService::new(key)),
         }
+    }
+
+    #[must_use]
+    pub fn random_img_service(settings: &Settings) -> Box<dyn ImageGenerator + Send> {
+        let provider = ImageProvider::random();
+        let key = match provider {
+            ImageProvider::OpenAI => &settings.openai_key,
+            ImageProvider::Bfl => &settings.bfl_api_key,
+            ImageProvider::Google => &settings.gemini_api_key,
+        };
+        Self::img_service(&provider, key)
+    }
+
+    #[must_use]
+    pub fn random_txt_service(settings: &Settings) -> Box<dyn TextGenerator + Send> {
+        let provider = TextProvider::random();
+        let key = match provider {
+            TextProvider::Anthropic => &settings.anthropic_key,
+            TextProvider::OpenAI => &settings.openai_key,
+            TextProvider::Google => &settings.gemini_api_key,
+        };
+        Self::txt_service(&provider, key)
     }
 }

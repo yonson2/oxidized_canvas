@@ -153,8 +153,6 @@ impl ImageGenerator for GoogleService {
 
         let response_body: GoogleResponse = response.into_json()?;
 
-        println!("Google Image API Response: {:?}", response_body);
-
         let b64_json_data = response_body
             .candidates
             .into_iter()

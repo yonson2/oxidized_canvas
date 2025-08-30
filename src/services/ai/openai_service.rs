@@ -51,12 +51,19 @@ struct OpenAITextRequestPayload<'a> {
 
 #[derive(Debug, Deserialize)]
 struct OpenAITextResponse {
-    choices: Vec<OpenAITextChoice>,
+    output: Vec<OpenAITextMessage>,
 }
 
 #[derive(Debug, Deserialize)]
-struct OpenAITextChoice {
-    text: String,
+struct OpenAITextMessage {
+    content: Option<Vec<OpenAITextContent>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAITextContent {
+    #[serde(rename = "type")]
+    content_type: String,
+    text: Option<String>,
 }
 
 #[async_trait]
@@ -94,10 +101,21 @@ impl TextGenerator for OpenAIService {
         let text_response: OpenAITextResponse = response.into_json()?;
 
         let text = text_response
-            .choices
+            .output
             .into_iter()
-            .next()
-            .map(|c| c.text)
+            .find_map(|message| {
+                if let Some(content_vec) = message.content {
+                    content_vec.into_iter().find_map(|content| {
+                        if content.content_type == "output_text" {
+                            content.text
+                        } else {
+                            None
+                        }
+                    })
+                } else {
+                    None
+                }
+            })
             .ok_or_else(|| {
                 Error::AIError("OpenAI response did not contain text data".to_string())
             })?;

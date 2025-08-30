@@ -4,10 +4,7 @@ use loco_rs::prelude::*;
 use crate::{
     common,
     models::{_entities::arts, arts::ArtParams},
-    services::{
-        providers::{ImageProvider, TextProvider},
-        service_provider::ServiceProvider,
-    },
+    services::service_provider::ServiceProvider,
     tasks::art_prompts::{IMAGE_PROMPT, SAMPLE_PROMPTS, SAMPLE_TITLES, TITLE_PROMPT},
 };
 
@@ -21,25 +18,15 @@ impl Task for CreateArt {
         }
     }
     async fn run(&self, ctx: &AppContext, _vars: &task::Vars) -> Result<()> {
-        let settings =
-            common::settings::Settings::from_json(&ctx.config.settings.clone().ok_or(0).unwrap())?;
+        let settings = common::settings::Settings::from_json(
+            &ctx.config
+                .settings
+                .clone()
+                .ok_or(Error::Message("Invalid settings".into()))?,
+        )?;
 
-        let image_provider = ImageProvider::random();
-        let img_key = match image_provider {
-            ImageProvider::OpenAI => settings.openai_key.clone(),
-            ImageProvider::Bfl => settings.bfl_api_key.clone(),
-            ImageProvider::Google => settings.gemini_api_key.clone(),
-        };
-
-        let text_provider = TextProvider::random();
-        let txt_key = match text_provider {
-            TextProvider::Anthropic => settings.anthropic_key.clone(),
-            TextProvider::OpenAI => settings.openai_key.clone(),
-            TextProvider::Google => settings.gemini_api_key.clone(),
-        };
-
-        let img_gen = ServiceProvider::img_service(&image_provider, &img_key);
-        let text_gen = ServiceProvider::txt_service(&text_provider, &txt_key);
+        let img_gen = ServiceProvider::random_img_service(&settings);
+        let text_gen = ServiceProvider::random_txt_service(&settings);
 
         let random_arts = arts::Model::find_n_random(&ctx.db, 5).await?;
         let latest_arts = arts::Model::find_n_latest(&ctx.db, 5).await?;
@@ -53,7 +40,7 @@ impl Task for CreateArt {
             .await
             .map_err(|e| Error::Message(format!("Unable to generate prompt for image: {e}")))?;
 
-        println!("Prompt for image is: {{prompt}}");
+        println!("Prompt for image is: {prompt}");
 
         let title_generator_prompt = match (random_arts.len(), latest_arts.len()) {
             (0, 0) => TITLE_PROMPT

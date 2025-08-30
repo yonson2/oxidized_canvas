@@ -10,6 +10,11 @@ use sitemap_rs::image::Image;
 use sitemap_rs::url::{ChangeFrequency, Url};
 use sitemap_rs::url_set::UrlSet;
 
+use crate::common::settings::Settings;
+use crate::models::arts::ModelVec;
+use crate::services::providers::TextProvider;
+use crate::services::service_provider::ServiceProvider;
+use crate::tasks::art_prompts::{MIX_IMAGE_PROMPT, TITLE_PROMPT};
 use crate::{
     models::_entities::arts::{Entity, Model},
     views,
@@ -19,23 +24,6 @@ use crate::{
 pub struct MixParams {
     art_ids: Vec<i32>,
 }
-
-// #[derive(Clone, Debug, Serialize, Deserialize)]
-// pub struct Params {
-//     pub image: String,
-//     pub prompt: String,
-//     pub title: String,
-//     pub uuid: Uuid,
-// }
-//
-// impl Params {
-//     fn update(&self, item: &mut ActiveModel) {
-//         item.image = Set(self.image.clone());
-//         item.prompt = Set(self.prompt.clone());
-//         item.title = Set(self.title.clone());
-//         item.uuid = Set(self.uuid);
-//     }
-// }
 
 async fn load_item(ctx: &AppContext, id: i32) -> Result<Model> {
     let item = Entity::find_by_id(id).one(&ctx.db).await?;
@@ -60,22 +48,59 @@ pub async fn show_mix(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
-    let title_ids = Model::fetch_all_title_ids(&ctx.db).await?;
+    let title_ids = Model::find_all_title_ids(&ctx.db).await?;
     views::arts::show_mix(&v, &title_ids)
 }
 
 #[debug_handler]
 pub async fn create_mix(
-    State(_ctx): State<AppContext>,
+    State(ctx): State<AppContext>,
     Json(params): Json<MixParams>,
 ) -> Result<Response> {
-    println!("Selected art IDs for mix: {:?}", params.art_ids);
+    let settings = Settings::from_json(
+        &ctx.config
+            .settings
+            .clone()
+            .ok_or(Error::Message("Invalid settings".into()))?,
+    )?;
+
+    let arts = Model::find_in(&ctx.db, params.art_ids).await?;
+
+    // let img_gen = ServiceProvider::random_img_service(&settings);
+    let text_gen = ServiceProvider::txt_service(&TextProvider::OpenAI, &settings.openai_key);
+
+    let prompt = MIX_IMAGE_PROMPT.replace("{{PROMPTS}}", &arts.to_formatted_prompts());
+
+    let prompt = text_gen
+        .generate(&prompt)
+        .await
+        .map_err(|e| Error::Message(format!("Unable to gen prompt for mix: {e}")))?;
+
+    let titles = arts.to_formatted_titles();
+    let title_prompt = TITLE_PROMPT
+        .replace("{{TITLES}}", &titles)
+        .replace("{{DESCRIPTION}}", &prompt);
+
+    let title = text_gen
+        .generate(&title_prompt)
+        .await
+        .map_err(|_| Error::Message("Unable to create title for mix".into()))?;
+
+    //TODO:
+    // need to generate new models and run migrations for mixes.
+    // need to insert a new mix.
+    // need to add a route to view the mixes
+    // need to redirect to the mixes.
+    // move mix routes to mix controller
+
+    println!("{title} - {prompt}");
 
     Ok((
         StatusCode::SEE_OTHER,
         [(header::LOCATION, "/")],
-        "Redirecting to mix result..."
-    ).into_response())
+        "Redirecting to mix result...",
+    )
+        .into_response())
 }
 
 #[debug_handler]

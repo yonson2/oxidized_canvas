@@ -27,6 +27,29 @@ impl ActiveModelBehavior for super::_entities::arts::ActiveModel {
     }
 }
 
+pub trait ModelVec {
+    fn to_formatted_prompts(&self) -> String;
+    fn to_formatted_titles(&self) -> String;
+}
+
+impl ModelVec for [Model] {
+    fn to_formatted_prompts(&self) -> String {
+        self.iter()
+            .enumerate()
+            .map(|(i, a)| format![" - Prompt {}: {}", i + 1, a.prompt.as_str(),])
+            .collect::<Vec<String>>()
+            .join("\n\n")
+    }
+
+    fn to_formatted_titles(&self) -> String {
+        self.iter()
+            .enumerate()
+            .map(|(i, a)| format![" - Title {}: {}", i + 1, a.title.as_str(),])
+            .collect::<Vec<String>>()
+            .join("\n\n")
+    }
+}
+
 impl super::_entities::arts::Model {
     /// Asynchronously creates an art.
     /// database.
@@ -84,6 +107,20 @@ impl super::_entities::arts::Model {
             .ok_or_else(|| ModelError::EntityNotFound)?;
 
         Ok(id)
+    }
+
+    /// finds all of the arts with the specified ids
+    ///
+    /// # Errors
+    ///
+    /// On DB query error
+    pub async fn find_in(db: &DatabaseConnection, ids: Vec<i32>) -> ModelResult<Vec<Model>> {
+        let arts = arts::Entity::find()
+            .filter(arts::Column::Id.is_in(ids))
+            .all(db)
+            .await?;
+
+        Ok(arts)
     }
 
     /// finds the ids of all of the created arts
@@ -165,7 +202,12 @@ impl super::_entities::arts::Model {
         Ok(img)
     }
 
-    pub async fn fetch_all_title_ids(db: &DatabaseConnection) -> ModelResult<Vec<ArtTitleId>> {
+    /// finds the ids and titles of all of the created arts
+    ///
+    /// # Errors
+    ///
+    /// When could not find arts or DB query error
+    pub async fn find_all_title_ids(db: &DatabaseConnection) -> ModelResult<Vec<ArtTitleId>> {
         let title_ids = arts::Entity::find()
             .select_only()
             .columns([arts::Column::Id, arts::Column::Title])

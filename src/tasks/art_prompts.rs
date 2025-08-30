@@ -9,7 +9,8 @@ pub const SAMPLE_PROMPTS: &str = "
 
 pub const TITLE_PROMPT: &str = "Create a captivating and imaginative title that goes beyond a literal interpretation.
 Avoid using the artist's name, and feel free to incorporate clever wordplay or alliteration inspired by the description.
-Here are some titles that you can take some inspiration from (never use these verbatim, they serve as inspiration for you to come up with something original): {{TITLES}}
+Here are some titles that you can take some inspiration from (never use these verbatim, they serve as inspiration for you to come up with something original):
+{{TITLES}}
 The title should be no longer than 27 characters (Ideally it should be quite short, between two or three words) and evoke a sense of beauty, emotion, or intrigue.
 For the following description (remember to give me *just* the title): {{DESCRIPTION}}.";
 
@@ -34,3 +35,26 @@ Your primary goal is to create a beautiful, compelling, and artistic image promp
 Create something artistically excellent that contrasts with the above - if they focus on nature, explore urban beauty; if they use warm colors, try cool palettes; if they're realistic, consider abstract approaches; if they're paintings, try photography or digital art. Always prioritize artistic beauty and emotional impact over mere differentiation.
 
 Please give me *just* the prompt surrounded by single quotes and nothing more before or after it. This is EXTREMELY important. The prompt should be a concise yet descriptive instruction for an image generation AI.";
+
+pub const MIX_IMAGE_PROMPT: &str = "Can you create a prompt for an AI image generator (e.g., DALL-E 2, MidJourney, StableDiffusion) to produce a compelling and artistic image?
+
+The primary goal is an artistic image that combines and blends elements from multiple existing artworks. Be imaginative and descriptive, but remember simplicity can also be beautiful. Avoid over-saturating with colors or elements if it doesn't fit the unified style.
+
+Specify the type of image: e.g., a photograph, painting, landscape description, unique object, or abstract concept. At least one in ten prompts should be for a photograph. For other types, aim for unique styles, painterly or illustrative qualities rather than strict photorealism.
+
+To inspire style, you can occasionally reference varied painters or photographers, but avoid overusing the same well-known names.
+
+To enhance creativity and originality while creating a cohesive blend:
+- Identify common themes, subjects, or stylistic elements across the provided prompts and weave them together harmoniously.
+- Combine different subjects, moods, and artistic approaches from the various prompts into a single unified composition.
+- Emphasize artistic interpretation that merges different mediums (oil, watercolor, digital, ink), art movements (impressionism, art deco, surrealism - used thoughtfully), dramatic lighting, and expressive color palettes from the source prompts.
+- When describing, focus on how the scene, style, emotion, and medium blend together, rather than generic phrases like 'A painting of X'. For instance: 'Mixed-media composition merging impressionistic florals with geometric abstractions, unified by golden hour lighting.'
+
+Your primary goal is to create a beautiful, compelling, and artistic image prompt that thoughtfully combines and synthesizes elements from these previous prompts to create something new yet cohesive:
+
+{{PROMPTS}}
+
+Analyze the above prompts and create a single artwork that harmoniously blends their subjects, styles, moods, colors, and artistic approaches. Look for connecting themes - whether visual, emotional, or stylistic - that can unite disparate elements into one compelling composition.
+
+Please give me *just* the prompt surrounded by single quotes and nothing more before or after it. This is EXTREMELY important. The prompt should be a concise yet descriptive instruction for an image generation AI.";
+
