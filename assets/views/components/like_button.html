@@ -1,5 +1,5 @@
 <button class="like-button">
-  <svg class="heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <svg class="heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64">
     <path d="M16.5 3C19.538 3 22 5.5 22 9c0 7-7.5 11-10 12.5C9.5 20 2 16 2 9c0-3.5 2.5-6 5.5-6C9.36 3 11 4 12 5c1-1 2.64-2 4.5-2z"/>
   </svg>
 </button>
@@ -54,14 +54,31 @@
 .like-button.animating.liking .heart {
   fill: rgb(255, 110, 110);
   stroke: none;
-  animation: likeAnimation 0.8s 1 forwards;
+  animation: likeAnimation 0.8s 1 forwards, heartShake 0.6s ease-in-out;
 }
 
 .like-button.animating.unliking .heart {
   fill: none;
   stroke: rgb(255, 110, 110);
   stroke-width: 1.5;
-  animation: unlikeAnimation 0.8s 1 forwards;
+  animation: unlikeAnimation 0.8s 1 forwards, heartShake 0.6s ease-in-out;
+}
+
+.heart-fireworks-effect {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: heartFireworks 1s ease-out forwards, heartFireworksGravity 1s ease-in forwards, heartFireworksPosition 5s linear forwards;
+  animation-duration: 1.25s, 1.25s, 6.25s;
+}
+
+.like-button {
+  position: relative;
 }
 
 @keyframes likeAnimation {
@@ -115,6 +132,68 @@
   100% { 
     opacity: 0;
     transform: scale(1);
+  }
+}
+
+@keyframes heartShake {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(1deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes heartFireworks {
+  to {
+    box-shadow: 
+      114px -107px #8800ff, 212px -166px #a600ff, 197px -6px #ff006a, 179px -329px #3300ff, 
+      -167px -262px #ff0062, 233px 65px #ff008c, 81px 42px #0051ff, -13px 54px #00ff2b, 
+      -60px -183px #0900ff, 127px -259px #ff00e6, 117px -122px #00b7ff, 95px 20px #ff8000, 
+      115px 1px #0004ff, -160px -328px #00ff40, 69px -242px #000dff, -208px -230px #ff0400, 
+      30px -15px #e6ff00, 235px -15px #fb00ff, 80px -232px #d5ff00, 175px -173px #00ff3c, 
+      -187px -176px #aaff00, 4px 26px #ff6f00, 227px -106px #ff0099, 119px 17px #00ffd5, 
+      -102px 4px #ff0088, -16px -4px #00fff7, -201px -310px #00ffdd, 64px -181px #f700ff, 
+      -234px -15px #00fffb, -184px -263px #aa00ff, 96px -303px #0037ff, -139px 10px #0026ff;
+  }
+}
+
+@keyframes heartFireworksGravity {
+  to {
+    transform: translateY(200px);
+    opacity: 0;
+  }
+}
+
+@keyframes heartFireworksPosition {
+  0%, 19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%, 39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%, 59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%, 79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%, 99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
   }
 }
 </style>

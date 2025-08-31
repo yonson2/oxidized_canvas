@@ -119,6 +119,28 @@
       let likedImages = new Set();
       let touchTime = 0;
       
+      // Load liked images from localStorage
+      function loadLikedImages() {
+        try {
+          const saved = localStorage.getItem('likedImages');
+          if (saved) {
+            likedImages = new Set(JSON.parse(saved));
+          }
+        } catch (e) {
+          console.error('Failed to load liked images:', e);
+          likedImages = new Set();
+        }
+      }
+      
+      // Save liked images to localStorage
+      function saveLikedImages() {
+        try {
+          localStorage.setItem('likedImages', JSON.stringify([...likedImages]));
+        } catch (e) {
+          console.error('Failed to save liked images:', e);
+        }
+      }
+      
       function updateLikeListener() {
         // Remove previous listener if exists
         if (currentVisibleImage) {
@@ -168,7 +190,28 @@
         } else {
           likedImages.add(currentImageId);
           likeButton.classList.add('liked');
+          
+          // Spawn independent fireworks
+          const fireworksContainer = document.createElement('div');
+          fireworksContainer.style.transform = 'scale(0.4)';
+          fireworksContainer.style.position = 'absolute';
+          fireworksContainer.style.pointerEvents = 'none';
+          
+          const fireworks = document.createElement('div');
+          fireworks.className = 'heart-fireworks-effect';
+          fireworksContainer.appendChild(fireworks);
+          likeButton.appendChild(fireworksContainer);
+          
+          // Remove fireworks after animation completes
+          setTimeout(() => {
+            if (fireworksContainer.parentNode) {
+              fireworksContainer.parentNode.removeChild(fireworksContainer);
+            }
+          }, 6250);
         }
+        
+        // Save to localStorage
+        saveLikedImages();
         
         if (wasLiked) {
           likeButton.classList.add('animating', 'unliking');
@@ -200,6 +243,9 @@
 
       // Initialize observer on the second to last item
       document.addEventListener('DOMContentLoaded', () => {
+        // Load liked images from localStorage
+        loadLikedImages();
+        
         const items = document.querySelectorAll('.snap-item');
         if (items.length >= 2) {
           const secondToLastItem = items[items.length - 2];
