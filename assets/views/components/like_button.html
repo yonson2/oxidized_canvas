@@ -1,0 +1,121 @@
+<button class="like-button">
+  <svg class="heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+    <path d="M16.5 3C19.538 3 22 5.5 22 9c0 7-7.5 11-10 12.5C9.5 20 2 16 2 9c0-3.5 2.5-6 5.5-6C9.36 3 11 4 12 5c1-1 2.64-2 4.5-2z"/>
+  </svg>
+</button>
+
+<style>
+.like-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 22px 20px 22px;
+  background: transparent;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+  transition: transform 400ms cubic-bezier(.68,-0.55,.27,2.5);
+}
+
+.like-button .heart {
+  fill: none;
+  stroke: rgb(255, 110, 110);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 300ms ease-in-out, fill 100ms ease-in-out, stroke 100ms ease-in-out;
+}
+
+@keyframes beatingHeart {
+  0% {
+    transform: scale(1);
+  }
+
+  15% {
+    transform: scale(1.15);
+  }
+
+  30% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.15);
+  }
+
+  60% {
+    transform: scale(1);
+  }
+}
+
+.like-button.liked {
+  transform: scale(105%);
+}
+
+.like-button.animating.liking .heart {
+  fill: rgb(255, 110, 110);
+  stroke: none;
+  animation: likeAnimation 0.8s 1 forwards;
+}
+
+.like-button.animating.unliking .heart {
+  fill: none;
+  stroke: rgb(255, 110, 110);
+  stroke-width: 1.5;
+  animation: unlikeAnimation 0.8s 1 forwards;
+}
+
+@keyframes likeAnimation {
+  0% { 
+    opacity: 0;
+    transform: scale(1);
+  }
+  15% { 
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  30% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  45% { 
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  60% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes unlikeAnimation {
+  0% { 
+    opacity: 0;
+    transform: scale(1);
+  }
+  15% { 
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  30% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  45% { 
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  60% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+</style>
+

@@ -35,7 +35,7 @@
   <body class="bg-zinc-900 text-white">
     <div class="snap-container">
       {% for item in items %}
-      <div class="flex items-center justify-center snap-item">
+      <div class="flex items-center justify-center snap-item" data-image-id="{{item.id}}">
         <div class="flex flex-col items-center">
           <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
           <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
@@ -45,10 +45,12 @@
       </div>
       {% endfor %}
     </div>
+    
+    <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+      {% include "components/like_button.html" %}
+    </div>
 
     <script>
-      // Load new images as the user approaches the bottom using an
-      // intersection observer.
       let currentPage = 1;
       let totalPages = null;
       let isLoading = false;
@@ -61,7 +63,7 @@
         });
       }, {
         root: null,
-        rootMargin: '100px', // Trigger 100px before the element is visible
+        rootMargin: '100px',
         threshold: 0.1
       });
 
@@ -98,6 +100,7 @@
         items.forEach(item => {
           const itemDiv = document.createElement('div');
           itemDiv.className = 'flex items-center justify-center snap-item';
+          itemDiv.setAttribute('data-image-id', item.id);
           itemDiv.innerHTML = `
             <div class="flex flex-col items-center">
               <h1 class="mb-4 font-medium text-xl dark:text-slate-100">${item.title}</h1>
@@ -110,6 +113,91 @@
         });
       }
 
+      // Like button functionality
+      let currentVisibleImage = null;
+      let currentImageId = null;
+      let likedImages = new Set();
+      let touchTime = 0;
+      
+      function updateLikeListener() {
+        // Remove previous listener if exists
+        if (currentVisibleImage) {
+          currentVisibleImage.removeEventListener('dblclick', handleLike);
+          currentVisibleImage.removeEventListener('touchend', handleTouch);
+        }
+        
+        // Find currently visible image
+        const snapItems = document.querySelectorAll('.snap-item');
+        const container = document.querySelector('.snap-container');
+        const containerRect = container.getBoundingClientRect();
+        
+        snapItems.forEach(item => {
+          const itemRect = item.getBoundingClientRect();
+          // Check if item is in viewport (more than 50% visible)
+          if (itemRect.top < containerRect.height * 0.5 && itemRect.bottom > containerRect.height * 0.5) {
+            currentVisibleImage = item.querySelector('img');
+            currentImageId = item.getAttribute('data-image-id');
+            
+            if (currentVisibleImage) {
+              currentVisibleImage.addEventListener('dblclick', handleLike);
+              currentVisibleImage.addEventListener('touchend', handleTouch);
+              updateHeartButtonState();
+            }
+          }
+        });
+      }
+      
+      function updateHeartButtonState() {
+        const likeButton = document.querySelector('.like-button');
+        if (likedImages.has(currentImageId)) {
+          likeButton.classList.add('liked');
+        } else {
+          likeButton.classList.remove('liked');
+        }
+      }
+      
+      function toggleLike() {
+        if (!currentImageId) return;
+        
+        const likeButton = document.querySelector('.like-button');
+        const wasLiked = likedImages.has(currentImageId);
+        
+        if (wasLiked) {
+          likedImages.delete(currentImageId);
+          likeButton.classList.remove('liked');
+        } else {
+          likedImages.add(currentImageId);
+          likeButton.classList.add('liked');
+        }
+        
+        if (wasLiked) {
+          likeButton.classList.add('animating', 'unliking');
+        } else {
+          likeButton.classList.add('animating', 'liking');
+        }
+        
+        setTimeout(() => {
+          likeButton.classList.remove('animating', 'liking', 'unliking');
+        }, 800);
+      }
+      
+      function handleLike(e) {
+        e.preventDefault();
+        toggleLike();
+      }
+      
+      function handleTouch(e) {
+        e.preventDefault();
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - touchTime;
+        if (tapLength < 500 && tapLength > 0) {
+          toggleLike();
+        }
+        touchTime = currentTime;
+      }
+      
+      document.querySelector('.snap-container').addEventListener('scroll', updateLikeListener);
+
       // Initialize observer on the second to last item
       document.addEventListener('DOMContentLoaded', () => {
         const items = document.querySelectorAll('.snap-item');
@@ -117,6 +205,8 @@
           const secondToLastItem = items[items.length - 2];
           observer.observe(secondToLastItem);
         }
+        
+        updateLikeListener();
       });
     </script>
   </body>
