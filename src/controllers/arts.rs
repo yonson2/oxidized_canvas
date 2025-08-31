@@ -134,9 +134,9 @@ pub async fn sitemap(State(ctx): State<AppContext>) -> Result<Response> {
 pub fn routes() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
-        .add("/:id", get(show))
         .add("/infinite", get(show_infinite))
         .add("/infinite.json", get(infinite_json))
         .add("/img/:id", get(serve_image))
+        .add("/:id", get(show))
         .add("/sitemap.xml", get(sitemap))
 }
