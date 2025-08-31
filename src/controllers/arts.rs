@@ -2,12 +2,15 @@
 #![allow(clippy::unnecessary_struct_initialization)]
 #![allow(clippy::unused_async)]
 use axum::debug_handler;
+use axum::extract::Query;
 use axum::http::{header, StatusCode};
+use loco_rs::model::query::PaginationQuery;
 use loco_rs::prelude::*;
 use sitemap_rs::image::Image;
 use sitemap_rs::url::{ChangeFrequency, Url};
 use sitemap_rs::url_set::UrlSet;
 
+use crate::views::arts::PaginationResponse;
 use crate::{
     models::_entities::arts::{Entity, Model},
     views,
@@ -40,6 +43,31 @@ pub async fn show_latest(
 ) -> Result<Response> {
     let item = Model::find_latest(&ctx.db).await?;
     views::arts::show(&v, &item, true)
+}
+
+#[debug_handler]
+pub async fn show_infinite(
+    ViewEngine(v): ViewEngine<TeraView>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let items = Model::find_all_latest(
+        &ctx.db,
+        &PaginationQuery {
+            page: 1,
+            page_size: 5,
+        },
+    )
+    .await?;
+    views::arts::show_infinite(&v, &items.page)
+}
+
+#[debug_handler]
+pub async fn infinite_json(
+    State(ctx): State<AppContext>,
+    Query(pagination): Query<PaginationQuery>,
+) -> Result<Response> {
+    let items = Model::find_all_latest(&ctx.db, &pagination).await?;
+    format::json(PaginationResponse::response(items, &pagination))
 }
 
 #[debug_handler]
@@ -107,6 +135,8 @@ pub fn routes() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
         .add("/:id", get(show))
+        .add("/infinite", get(show_infinite))
+        .add("/infinite.json", get(infinite_json))
         .add("/img/:id", get(serve_image))
         .add("/sitemap.xml", get(sitemap))
 }

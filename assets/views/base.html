@@ -18,10 +18,12 @@
 </head>
 
 <body class="bg-zinc-900 h-screen text-white">
-  <div id="content">
+  <div id="content" class="h-screen flex flex-col">
     <h1 class="italic font-thin text-2xl text-center p-4 dark:text-slate-100"><a class="hover:underline decoration-red-700" href="/">Imaginary Gallery</a></h1>
-    {% block content %}
-    {% endblock content %}
+    <div class="flex-1">
+      {% block content %}
+      {% endblock content %}
+    </div>
   </div>
 
   {% block js %}

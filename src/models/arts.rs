@@ -1,8 +1,12 @@
 use base64::{engine::general_purpose, Engine as _};
+use loco_rs::model::query;
+use loco_rs::model::query::PageResponse;
+use loco_rs::model::query::PaginationQuery;
 use loco_rs::model::ModelResult;
 use loco_rs::prelude::model;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
+use loco_rs::Error;
 use sea_orm::FromQueryResult;
 use sea_orm::TransactionTrait;
 use sea_orm::{entity::prelude::*, Order, QueryOrder, QuerySelect};
@@ -218,6 +222,27 @@ impl super::_entities::arts::Model {
             .await?;
 
         Ok(title_ids)
+    }
+    /// fetches the most recently created `arts::Model`s
+    /// the returned data is paginated.
+    ///
+    /// # Errors
+    ///
+    /// When could not find arts or DB query error
+    pub async fn find_all_latest(
+        db: &DatabaseConnection,
+        pagination: &PaginationQuery,
+    ) -> Result<PageResponse<ArtTitleId>, Error> {
+        query::fetch_page(
+            db,
+            arts::Entity::find()
+                .select_only()
+                .columns([arts::Column::Id, arts::Column::Title])
+                .order_by_desc(arts::Column::Id)
+                .into_partial_model::<ArtTitleId>(),
+            pagination,
+        )
+        .await
     }
 }
 

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/static/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png" />
+    <link rel="manifest" href="/static/site.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imaginary Gallery</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <style>
+      /* Firefox scroll snap fix */
+      .snap-container {
+        scroll-snap-type: y mandatory;
+        -webkit-overflow-scrolling: touch;
+        height: 100vh;
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+      }
+      .snap-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+      }
+      .snap-item {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        height: 100vh;
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+
+  <body class="bg-zinc-900 text-white">
+    <div class="snap-container">
+      {% for item in items %}
+      <div class="flex items-center justify-center snap-item">
+        <div class="flex flex-col items-center">
+          <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
+          <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
+            <img class="object-contain sm:rounded-md" src="/img/{{item.id}}.webp" alt=""/>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <script>
+      // Load new images as the user approaches the bottom using an
+      // intersection observer.
+      let currentPage = 1;
+      let totalPages = null;
+      let isLoading = false;
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !isLoading && (totalPages === null || currentPage < totalPages)) {
+            loadMoreItems();
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '100px', // Trigger 100px before the element is visible
+        threshold: 0.1
+      });
+
+      async function loadMoreItems() {
+        if (isLoading) return;
+        isLoading = true;
+
+        try {
+          const response = await fetch(`/infinite.json?page=${currentPage + 1}&page_size=5`);
+          const data = await response.json();
+          
+          if (data.results && data.results.length > 0) {
+            appendItems(data.results);
+            currentPage = data.pagination.page;
+            totalPages = data.pagination.total_pages;
+            
+            // Observe the new second to last item
+            const items = document.querySelectorAll('.snap-item');
+            if (items.length >= 2) {
+              const secondToLastItem = items[items.length - 2];
+              observer.observe(secondToLastItem);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load more items:', error);
+        } finally {
+          isLoading = false;
+        }
+      }
+
+      function appendItems(items) {
+        const container = document.querySelector('.snap-container');
+        
+        items.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'flex items-center justify-center snap-item';
+          itemDiv.innerHTML = `
+            <div class="flex flex-col items-center">
+              <h1 class="mb-4 font-medium text-xl dark:text-slate-100">${item.title}</h1>
+              <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
+                <img class="object-contain sm:rounded-md" src="/img/${item.id}.webp" alt=""/>
+              </div>
+            </div>
+          `;
+          container.appendChild(itemDiv);
+        });
+      }
+
+      // Initialize observer on the second to last item
+      document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.snap-item');
+        if (items.length >= 2) {
+          const secondToLastItem = items[items.length - 2];
+          observer.observe(secondToLastItem);
+        }
+      });
+    </script>
+  </body>
+</html>
