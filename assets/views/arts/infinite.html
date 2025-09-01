@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imaginary Gallery</title>
     <link rel="stylesheet" href="/static/css/styles.css" />
+    {% include "components/liked_image_glow.html" %}
     <style>
       /* Firefox scroll snap fix */
       .snap-container {
@@ -38,7 +39,7 @@
       <div class="flex items-center justify-center snap-item" data-image-id="{{item.id}}">
         <div class="flex flex-col items-center">
           <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
-          <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
+          <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md image-container" data-image-id="{{item.id}}">
             <img class="object-contain sm:rounded-md" src="/img/{{item.id}}.webp" alt=""/>
           </div>
         </div>
@@ -48,6 +49,10 @@
     
     <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
       {% include "components/like_button.html" %}
+    </div>
+    
+    <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-none z-40 transition-opacity duration-300" id="scroll-hint-arrow">
+      {% include "components/down_arrow.html" %}
     </div>
 
     <script>
@@ -104,7 +109,7 @@
           itemDiv.innerHTML = `
             <div class="flex flex-col items-center">
               <h1 class="mb-4 font-medium text-xl dark:text-slate-100">${item.title}</h1>
-              <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
+              <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md image-container" data-image-id="${item.id}">
                 <img class="object-contain sm:rounded-md" src="/img/${item.id}.webp" alt=""/>
               </div>
             </div>
@@ -176,6 +181,49 @@
         } else {
           likeButton.classList.remove('liked');
         }
+        updateImageGlowState();
+      }
+      
+      function updateImageGlowState() {
+        const imageContainers = document.querySelectorAll('.image-container');
+        imageContainers.forEach(container => {
+          const imageId = container.getAttribute('data-image-id');
+          if (likedImages.has(imageId)) {
+            if (!container.classList.contains('image-glow-container')) {
+              container.classList.add('image-glow-container');
+              
+              // Create animated border elements
+              const glowBox = document.createElement('div');
+              glowBox.className = 'animated-border-box-glow';
+              
+              const borderBox = document.createElement('div');
+              borderBox.className = 'animated-border-box';
+              
+              container.appendChild(glowBox);
+              container.appendChild(borderBox);
+              
+              // Trigger fade in after elements are added
+              setTimeout(() => {
+                container.classList.add('glow-active');
+              }, 10);
+            } else {
+              container.classList.add('glow-active');
+            }
+          } else {
+            if (container.classList.contains('image-glow-container')) {
+              container.classList.remove('glow-active');
+              
+              // Remove elements after fade out completes
+              setTimeout(() => {
+                container.classList.remove('image-glow-container');
+                const glowBox = container.querySelector('.animated-border-box-glow');
+                const borderBox = container.querySelector('.animated-border-box');
+                if (glowBox) glowBox.remove();
+                if (borderBox) borderBox.remove();
+              }, 1200); // Match transition duration
+            }
+          }
+        });
       }
       
       function toggleLike() {
@@ -213,6 +261,9 @@
         // Save to localStorage
         saveLikedImages();
         
+        // Update glow state immediately
+        updateImageGlowState();
+        
         if (wasLiked) {
           likeButton.classList.add('animating', 'unliking');
         } else {
@@ -239,7 +290,20 @@
         touchTime = currentTime;
       }
       
+      function updateScrollHintArrow() {
+        const container = document.querySelector('.snap-container');
+        const arrow = document.getElementById('scroll-hint-arrow');
+        
+        // Hide arrow when scrolled past the first viewport (100vh)
+        if (container.scrollTop > window.innerHeight * 0.5) {
+          arrow.style.opacity = '0';
+        } else {
+          arrow.style.opacity = '1';
+        }
+      }
+      
       document.querySelector('.snap-container').addEventListener('scroll', updateLikeListener);
+      document.querySelector('.snap-container').addEventListener('scroll', updateScrollHintArrow);
 
       // Initialize observer on the second to last item
       document.addEventListener('DOMContentLoaded', () => {
@@ -253,6 +317,7 @@
         }
         
         updateLikeListener();
+        updateImageGlowState();
       });
     </script>
   </body>

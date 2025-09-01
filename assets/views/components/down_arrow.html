@@ -1,0 +1,92 @@
+<div class="arrow-container">
+  <div class="icon">
+    <div></div>
+  </div>
+</div>
+
+<style>
+.arrow-container {
+  --white: #ffe7ff;
+  --purple-100: #f4b1fd;
+  --purple-200: #d190ff;
+  --purple-300: #c389f2;
+  --purple-400: #8e26e2;
+  --purple-500: #5e2b83;
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  z-index: 10;
+}
+
+.icon div,
+.icon div::before,
+.icon div::after {
+  height: 3px;
+  border-radius: 1px;
+  background-color: var(--white);
+}
+
+.icon div::before,
+.icon div::after {
+  content: "";
+  position: absolute;
+  transform-origin: center right;
+  width: 14px;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+.icon div {
+  position: relative;
+  width: 24px;
+  box-shadow: -2px 2px 5px var(--purple-400);
+  transform: scale(0.9) rotate(90deg);
+  background: linear-gradient(to bottom, var(--white), var(--purple-100));
+  animation: swingArrow 1s ease-in-out infinite;
+}
+
+.icon div::before {
+  transform: rotate(44deg);
+  top: 1px;
+  right: 0;
+  box-shadow: 1px -2px 3px -1px var(--purple-400);
+  animation: rotateArrowLine 1s linear infinite;
+}
+
+.icon div::after {
+  bottom: 1px;
+  right: 0;
+  transform: rotate(316deg);
+  box-shadow: -2px 2px 3px 0 var(--purple-400);
+  background: linear-gradient(200deg, var(--white), var(--purple-100));
+  animation: rotateArrowLine2 1s linear infinite;
+}
+
+@keyframes swingArrow {
+  50% {
+    transform: translateY(5px) scale(0.9) rotate(90deg);
+  }
+}
+
+@keyframes rotateArrowLine {
+  50% {
+    transform: rotate(30deg);
+  }
+  80% {
+    transform: rotate(55deg);
+  }
+}
+
+@keyframes rotateArrowLine2 {
+  50% {
+    transform: rotate(330deg);
+  }
+  80% {
+    transform: rotate(300deg);
+  }
+}
+</style>
