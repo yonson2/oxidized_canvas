@@ -56,14 +56,17 @@
     </div>
 
     <script>
-      let currentPage = 1;
-      let totalPages = null;
-      let isLoading = false;
+      let lastItemId = null;
+      let firstItemId = null;
+      let isLoadingBottom = false;
+      let isLoadingTop = false;
+      let hasMoreBottom = true;
+      let hasMoreTop = true;
 
-      const observer = new IntersectionObserver((entries) => {
+      const bottomObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-          if (entry.isIntersecting && !isLoading && (totalPages === null || currentPage < totalPages)) {
-            loadMoreItems();
+          if (entry.isIntersecting && !isLoadingBottom && hasMoreBottom) {
+            loadMoreItemsBottom();
           }
         });
       }, {
@@ -72,30 +75,95 @@
         threshold: 0.1
       });
 
-      async function loadMoreItems() {
-        if (isLoading) return;
-        isLoading = true;
+      const topObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !isLoadingTop && hasMoreTop) {
+            loadMoreItemsTop();
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1
+      });
+
+      async function loadMoreItemsBottom() {
+        if (isLoadingBottom || !hasMoreBottom) return;
+        isLoadingBottom = true;
 
         try {
-          const response = await fetch(`/infinite.json?page=${currentPage + 1}&page_size=5`);
+          // Get the last item's ID
+          const items = document.querySelectorAll('.snap-item');
+          if (lastItemId === null && items.length > 0) {
+            lastItemId = items[items.length - 1].getAttribute('data-image-id');
+          }
+          
+          const response = await fetch(`/api/before/${lastItemId}`);
           const data = await response.json();
           
           if (data.results && data.results.length > 0) {
             appendItems(data.results);
-            currentPage = data.pagination.page;
-            totalPages = data.pagination.total_pages;
+            // Update lastItemId to the last item in the new results
+            lastItemId = data.results[data.results.length - 1].id;
+            
+            // If we got fewer items than expected, we might be at the end
+            if (data.results.length < 5) {
+              hasMoreBottom = false;
+            }
             
             // Observe the new second to last item
-            const items = document.querySelectorAll('.snap-item');
-            if (items.length >= 2) {
-              const secondToLastItem = items[items.length - 2];
-              observer.observe(secondToLastItem);
+            const updatedItems = document.querySelectorAll('.snap-item');
+            if (updatedItems.length >= 2) {
+              bottomObserver.disconnect();
+              const secondToLastItem = updatedItems[updatedItems.length - 2];
+              bottomObserver.observe(secondToLastItem);
             }
+          } else {
+            hasMoreBottom = false;
           }
         } catch (error) {
-          console.error('Failed to load more items:', error);
+          console.error('Failed to load more items at bottom:', error);
         } finally {
-          isLoading = false;
+          isLoadingBottom = false;
+        }
+      }
+
+      async function loadMoreItemsTop() {
+        if (isLoadingTop || !hasMoreTop) return;
+        isLoadingTop = true;
+
+        try {
+          // Get the first item's ID
+          const items = document.querySelectorAll('.snap-item');
+          if (firstItemId === null && items.length > 0) {
+            firstItemId = items[0].getAttribute('data-image-id');
+          }
+          
+          const response = await fetch(`/api/after/${firstItemId}`);
+          const data = await response.json();
+          
+          if (data.results && data.results.length > 0) {
+            prependItems(data.results);
+            firstItemId = data.results[data.results.length - 1].id;
+            
+            if (data.results.length < 5) {
+              hasMoreTop = false;
+            }
+            
+            // Re-observe the second item from top
+            const updatedItems = document.querySelectorAll('.snap-item');
+            if (updatedItems.length >= 2) {
+              topObserver.disconnect();
+              const secondItem = updatedItems[1];
+              topObserver.observe(secondItem);
+            }
+          } else {
+            hasMoreTop = false;
+          }
+        } catch (error) {
+          console.error('Failed to load more items at top:', error);
+        } finally {
+          isLoadingTop = false;
         }
       }
 
@@ -118,6 +186,33 @@
         });
       }
 
+      function prependItems(items) {
+        const container = document.querySelector('.snap-container');
+        const scrollHeightBefore = container.scrollHeight;
+        const scrollTopBefore = container.scrollTop;
+        
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'flex items-center justify-center snap-item';
+          itemDiv.setAttribute('data-image-id', item.id);
+          itemDiv.innerHTML = `
+            <div class="flex flex-col items-center">
+              <h1 class="mb-4 font-medium text-xl dark:text-slate-100">${item.title}</h1>
+              <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md image-container" data-image-id="${item.id}">
+                <img class="object-contain sm:rounded-md" src="/img/${item.id}.webp" alt=""/>
+              </div>
+            </div>
+          `;
+          container.insertBefore(itemDiv, container.firstChild);
+        }
+        
+        // Maintain scroll position after prepending
+        const scrollHeightAfter = container.scrollHeight;
+        const scrollHeightDiff = scrollHeightAfter - scrollHeightBefore;
+        container.scrollTop = scrollTopBefore + scrollHeightDiff;
+      }
+
       // Like button functionality
       let currentVisibleImage = null;
       let currentImageId = null;
@@ -125,7 +220,6 @@
       let touchTime = 0;
       let hasUserScrolled = false;
       
-      // Load liked images from localStorage
       function loadLikedImages() {
         try {
           const saved = localStorage.getItem('likedImages');
@@ -138,7 +232,6 @@
         }
       }
       
-      // Save liked images to localStorage
       function saveLikedImages() {
         try {
           localStorage.setItem('likedImages', JSON.stringify([...likedImages]));
@@ -148,13 +241,11 @@
       }
       
       function updateLikeListener() {
-        // Remove previous listener if exists
         if (currentVisibleImage) {
           currentVisibleImage.removeEventListener('dblclick', handleLike);
           currentVisibleImage.removeEventListener('touchend', handleTouch);
         }
         
-        // Find currently visible image
         const snapItems = document.querySelectorAll('.snap-item');
         const container = document.querySelector('.snap-container');
         const containerRect = container.getBoundingClientRect();
@@ -166,7 +257,6 @@
             currentVisibleImage = item.querySelector('img');
             const newImageId = item.getAttribute('data-image-id');
             
-            // Update URL if image ID has changed and user has scrolled
             if (newImageId !== currentImageId) {
               currentImageId = newImageId;
               if (hasUserScrolled) {
@@ -273,10 +363,7 @@
           }, 6250);
         }
         
-        // Save to localStorage
         saveLikedImages();
-        
-        // Update glow state immediately
         updateImageGlowState();
         
         if (wasLiked) {
@@ -323,15 +410,66 @@
       });
       document.querySelector('.snap-container').addEventListener('scroll', updateScrollHintArrow);
 
-      // Initialize observer on the second to last item
-      document.addEventListener('DOMContentLoaded', () => {
-        // Load liked images from localStorage
+      // Initialize observers and handle scroll position
+      document.addEventListener('DOMContentLoaded', async () => {
         loadLikedImages();
         
+        const container = document.querySelector('.snap-container');
         const items = document.querySelectorAll('.snap-item');
-        if (items.length >= 2) {
-          const secondToLastItem = items[items.length - 2];
-          observer.observe(secondToLastItem);
+        
+        // Reset scroll to top to show the first item (which is the item from the URL if refreshed)
+        container.scrollTop = 0;
+        
+        if (items.length > 0) {
+          // Initialize IDs for pagination
+          firstItemId = items[0].getAttribute('data-image-id');
+          lastItemId = items[items.length - 1].getAttribute('data-image-id');
+          
+          // Check if we have an ID in the URL (meaning we should check for items above)
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlId = urlParams.get('id');
+          
+          if (urlId) {
+            // We have an ID param, so there might be items above - try to load them
+            try {
+              const response = await fetch(`/api/after/${firstItemId}`);
+              const data = await response.json();
+              
+              if (data.results && data.results.length > 0) {
+                hasMoreTop = true;
+                
+                prependItems(data.results);
+                firstItemId = data.results[data.results.length - 1].id;
+                
+                if (data.results.length < 5) {
+                  hasMoreTop = false;
+                }
+              } else {
+                hasMoreTop = false;
+              }
+            } catch (error) {
+              console.error('Failed to check for items above:', error);
+              hasMoreTop = false;
+            }
+          } else {
+            hasMoreTop = false;
+          }
+          
+          // Re-query items after potential prepending
+          const updatedItems = document.querySelectorAll('.snap-item');
+          
+          // Set up bottom observer (for scrolling down)
+          if (updatedItems.length >= 2) {
+            const secondToLastItem = updatedItems[updatedItems.length - 2];
+            bottomObserver.observe(secondToLastItem);
+          }
+          
+          // Set up top observer (for scrolling up) 
+          // Only observe if there's more than one item and we might have more above
+          if (updatedItems.length >= 2 && hasMoreTop) {
+            const secondItem = updatedItems[1];
+            topObserver.observe(secondItem);
+          }
         }
         
         updateLikeListener();

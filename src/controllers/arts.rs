@@ -6,10 +6,12 @@ use axum::extract::Query;
 use axum::http::{header, StatusCode};
 use loco_rs::model::query::PaginationQuery;
 use loco_rs::prelude::*;
+use serde::{Deserialize, Serialize};
 use sitemap_rs::image::Image;
 use sitemap_rs::url::{ChangeFrequency, Url};
 use sitemap_rs::url_set::UrlSet;
 
+use crate::models::arts::ArtTitleId;
 use crate::views::arts::PaginationResponse;
 use crate::{
     models::_entities::arts::{Entity, Model},
@@ -45,24 +47,56 @@ pub async fn show_latest(
     views::arts::show(&v, &item, true)
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct IdQuery {
+    id: Option<i32>,
+}
+
 #[debug_handler]
 pub async fn show_infinite(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
+    Query(id): Query<IdQuery>,
 ) -> Result<Response> {
-    let items = Model::find_all_latest(
-        &ctx.db,
-        &PaginationQuery {
-            page: 1,
-            page_size: 5,
-        },
-    )
-    .await?;
-    views::arts::show_infinite(&v, &items.page)
+    let latest: ArtTitleId = match id.id {
+        Some(i) => Entity::find_by_id(i)
+            .one(&ctx.db)
+            .await?
+            .ok_or_else(|| Error::NotFound)?
+            .into(),
+        _ => Model::find_latest(&ctx.db).await?.into(),
+    };
+
+    let mut rest = Model::find_before_id(&ctx.db, latest.id).await?;
+    let mut items = vec![latest];
+    items.append(&mut rest);
+    views::arts::show_infinite(&v, &items)
 }
 
 #[debug_handler]
-pub async fn infinite_json(
+pub async fn cursor_before_json(
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let results = Model::find_before_id(&ctx.db, id).await?;
+    let results = serde_json::json!({"results": results});
+    format::json(results)
+}
+
+#[debug_handler]
+pub async fn cursor_after_json(
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let results = Model::find_after_id(&ctx.db, id).await?;
+    let results = serde_json::json!({"results": results});
+    format::json(results)
+}
+
+//NOTE: I'm keeping this endpoint for now but it's not used
+// after cursor navigation has been implemented.
+#[debug_handler]
+pub async fn paginated_json(
     State(ctx): State<AppContext>,
     Query(pagination): Query<PaginationQuery>,
 ) -> Result<Response> {
@@ -135,8 +169,11 @@ pub fn routes() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
         .add("/infinite", get(show_infinite))
-        .add("/infinite.json", get(infinite_json))
+        .add("/infinite.json", get(paginated_json))
         .add("/img/:id", get(serve_image))
         .add("/:id", get(show))
         .add("/sitemap.xml", get(sitemap))
+        //NOTE: api controller for json endpoints?
+        .add("/api/before/:id", get(cursor_before_json))
+        .add("/api/after/:id", get(cursor_after_json))
 }

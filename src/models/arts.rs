@@ -15,6 +15,8 @@ use serde::Serialize;
 
 pub use super::_entities::arts::{self, ActiveModel, Entity, Model};
 
+pub const PAGE_SIZE: u64 = 5;
+
 #[async_trait::async_trait]
 impl ActiveModelBehavior for super::_entities::arts::ActiveModel {
     async fn before_save<C>(self, _db: &C, insert: bool) -> Result<Self, DbErr>
@@ -223,6 +225,7 @@ impl super::_entities::arts::Model {
 
         Ok(title_ids)
     }
+
     /// fetches the most recently created `arts::Model`s
     /// the returned data is paginated.
     ///
@@ -243,6 +246,49 @@ impl super::_entities::arts::Model {
             pagination,
         )
         .await
+    }
+
+    /// fetches `arts::Model`s before the given id.
+    /// the returned data is paginated.
+    ///
+    /// # Errors
+    ///
+    /// When could not find arts or DB query error
+    pub async fn find_before_id(
+        db: &DatabaseConnection,
+        id: i32,
+    ) -> Result<Vec<ArtTitleId>, Error> {
+        let arts = arts::Entity::find()
+            .select_only()
+            .columns([arts::Column::Id, arts::Column::Title])
+            .cursor_by(arts::Column::Id)
+            .into_partial_model::<ArtTitleId>()
+            .before(id)
+            .last(PAGE_SIZE)
+            .all(db)
+            .await?;
+
+        Ok(arts.into_iter().rev().collect())
+    }
+
+    /// fetches `arts::Model`s before the given id.
+    /// the returned data is paginated.
+    ///
+    /// # Errors
+    ///
+    /// When could not find arts or DB query error
+    pub async fn find_after_id(db: &DatabaseConnection, id: i32) -> Result<Vec<ArtTitleId>, Error> {
+        let arts = arts::Entity::find()
+            .select_only()
+            .columns([arts::Column::Id, arts::Column::Title])
+            .cursor_by(arts::Column::Id)
+            .into_partial_model::<ArtTitleId>()
+            .after(id)
+            .first(PAGE_SIZE)
+            .all(db)
+            .await?;
+
+        Ok(arts)
     }
 }
 
@@ -265,9 +311,18 @@ struct ArtImage {
     pub image: String,
 }
 
-#[derive(DerivePartialModel, FromQueryResult, Serialize, Deserialize)]
+#[derive(DerivePartialModel, FromQueryResult, Serialize, Deserialize, Debug)]
 #[sea_orm(entity = "Entity")]
 pub struct ArtTitleId {
     pub id: i32,
     pub title: String,
+}
+
+impl From<arts::Model> for ArtTitleId {
+    fn from(value: arts::Model) -> Self {
+        Self {
+            id: value.id,
+            title: value.title,
+        }
+    }
 }
