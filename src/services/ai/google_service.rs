@@ -10,7 +10,7 @@ use crate::errors::Error;
 
 const GOOGLE_API_TEXT_ENDPOINT: &str =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
-const GOOGLE_API_IMAGE_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent";
+const GOOGLE_API_IMAGE_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent";
 
 pub struct GoogleService {
     api_key: String,
