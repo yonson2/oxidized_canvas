@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::traits::ImageGenerator;
 use crate::errors::Error;
 
-const BFL_ENDPOINT: &str = "https://api.bfl.ai/v1/flux-kontext-pro";
+const BFL_ENDPOINT: &str = "https://api.bfl.ai/v1/flux-2-pro-preview";
 
 pub struct BFLService {
     api_key: String,
@@ -28,7 +28,7 @@ impl BFLService {
 #[async_trait]
 impl ImageGenerator for BFLService {
     fn model_name(&self) -> String {
-        "BFL: Flux Kontext Pro".into()
+        "BFL: Flux 2 Pro Preview".into()
     }
     async fn generate(&self, prompt: &str) -> Result<String, Error> {
         let req: GenerateResponse = ureq::post(BFL_ENDPOINT)
@@ -36,9 +36,9 @@ impl ImageGenerator for BFLService {
             .set("x-key", &self.api_key)
             .send_json(ureq::json!({
                 "prompt": prompt,
-                "aspect_ratio": "1:1",
-                "prompt_upsampling": true,
-                "safety_tolerance": 6
+                "width": 1024,
+                "height": 1024,
+                "safety_tolerance": 2
             }))?
             .into_json()?;
 

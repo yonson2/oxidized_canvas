@@ -127,11 +127,11 @@ impl TextGenerator for OpenAIService {
 #[async_trait]
 impl ImageGenerator for OpenAIService {
     fn model_name(&self) -> String {
-        "OpenAI: gpt-image-1".into()
+        "OpenAI: gpt-image-1.5".into()
     }
     async fn generate(&self, prompt: &str) -> Result<String, Error> {
         let payload = OpenAIImageRequestPayload {
-            model: "gpt-image-1",
+            model: "gpt-image-1.5",
             quality: "high",
             prompt,
             size: "1024x1024",
