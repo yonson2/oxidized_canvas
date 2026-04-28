@@ -1,0 +1,29 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}
+Backoffice Login
+{% endblock title %}
+
+{% block content %}
+<section class="login-shell">
+  <div class="login-card">
+    <div class="hero">
+      <span class="eyebrow">Protected area</span>
+      <h1>Step into the archive.</h1>
+      <p class="muted">With great power comes greater responsability.</p>
+    </div>
+
+    {% if error %}
+      <div class="error" style="margin-top: 18px;">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/backoffice/login" style="margin-top: 22px;">
+      <div class="field">
+        <label for="password">Backoffice password</label>
+        <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" autofocus>
+      </div>
+      <button class="button button-accent" type="submit">Unlock Backoffice</button>
+    </form>
+  </div>
+</section>
+{% endblock content %}

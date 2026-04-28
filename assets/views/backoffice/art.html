@@ -1,0 +1,96 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}
+Edit Art #{{ item.id }}
+{% endblock title %}
+
+{% block content %}
+{% if notice %}
+  <div class="notice">{{ notice }}</div>
+{% endif %}
+{% if error %}
+  <div class="error">{{ error }}</div>
+{% endif %}
+
+<section class="split-grid">
+  <article class="panel">
+    <div class="panel-body">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Art #{{ item.id }}</span>
+          <h1 class="section-title">{{ item.title }}</h1>
+          <p>Inspect the generated output and update the stored metadata without leaving the archive.</p>
+        </div>
+        <div class="actions">
+          <a class="button" href="/{{ item.id }}" target="_blank" rel="noreferrer">Open public page</a>
+          {% if previous_id %}
+            <a class="button" href="/backoffice/arts/{{ previous_id }}">Previous</a>
+          {% endif %}
+          {% if next_id %}
+            <a class="button" href="/backoffice/arts/{{ next_id }}">Next</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="art-frame">
+        <img src="/img/{{ item.id }}.webp" alt="{{ item.title }}">
+      </div>
+
+      <div class="meta" style="margin-top: 18px;">
+        <span class="pill">Created {{ item.created_at | date(format="%Y-%m-%d") }}</span>
+        <span class="pill">Updated {{ item.updated_at | date(format="%Y-%m-%d") }}</span>
+        <span class="pill">{{ item.model | default(value="unknown model") }}</span>
+        <span class="pill">UUID {{ item.uuid }}</span>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-body">
+      <div class="section-heading">
+        <div>
+          <h2 class="section-title">Metadata</h2>
+          <p>Save direct edits or regenerate the piece with the existing replacement flow.</p>
+        </div>
+      </div>
+
+      <form method="post" action="/backoffice/arts/{{ item.id }}">
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" name="title" type="text" value="{{ item.title }}">
+        </div>
+
+        <div class="field">
+          <label for="model">Model</label>
+          <input id="model" name="model" type="text" value="{{ item.model | default(value="") }}" placeholder="openai, bfl, google, etc.">
+        </div>
+
+        <div class="field">
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt" name="prompt">{{ item.prompt }}</textarea>
+        </div>
+
+        <div class="actions">
+          <button class="button button-accent" type="submit">Save Changes</button>
+        </div>
+      </form>
+
+      <form method="post" action="/backoffice/arts/{{ item.id }}/replace" style="margin-top: 18px;">
+        <div class="info-card">
+          <h3 style="margin-top: 0;">Replace with a new generated image</h3>
+          <p class="muted">This re-runs the replacement pipeline, updates the image, prompt, title, model, and timestamp, then keeps the same art id.</p>
+          <button class="button button-danger" type="submit">Regenerate This Art</button>
+        </div>
+      </form>
+
+      <form method="post" action="/backoffice/arts/{{ item.id }}/delete" style="margin-top: 18px;">
+        <div class="info-card">
+          <h3 style="margin-top: 0;">Delete this art</h3>
+          <p class="muted">This permanently removes the art from the gallery. Any mix links referencing it are removed automatically.</p>
+          <button class="button button-danger" type="submit" onclick="return confirm('Delete this art permanently?');">Delete Art</button>
+        </div>
+      </form>
+    </div>
+  </article>
+</section>
+{% endblock content %}

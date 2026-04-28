@@ -1,0 +1,44 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}
+Backoffice Mixes
+{% endblock title %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-body">
+    <div class="section-heading">
+      <div>
+        <h1 class="section-title">Mix archive</h1>
+        <p>{{ page.total_items }} mix{% if page.total_items != 1 %}es{% endif %} available to inspect or remove.</p>
+      </div>
+    </div>
+
+    <div class="art-grid">
+      {% for mix in page.items %}
+        <a class="art-card" href="/backoffice/mixes/{{ mix.id }}">
+          <img src="/mix/img/{{ mix.id }}.webp" alt="{{ mix.title }}">
+          <h3>#{{ mix.id }} · {{ mix.title }}</h3>
+          <p class="muted">{{ mix.prompt | truncate(length=140) }}</p>
+          <div class="meta">
+            <span class="pill">{{ mix.created_at | date(format="%Y-%m-%d") }}</span>
+            <span class="pill">{{ mix.model }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="pager" style="margin-top: 22px; justify-content: space-between;">
+      <span class="muted">Page {{ page.page }} of {{ page.total_pages | default(value=1) }}</span>
+      <div class="actions">
+        {% if page.previous_page %}
+          <a class="button" href="/backoffice/mixes?page={{ page.previous_page }}">Previous</a>
+        {% endif %}
+        {% if page.next_page %}
+          <a class="button" href="/backoffice/mixes?page={{ page.next_page }}">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

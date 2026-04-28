@@ -42,6 +42,18 @@ async fn redirects_unauthenticated_backoffice_requests_to_login() {
 
 #[tokio::test]
 #[serial]
+async fn can_render_backoffice_login_page_directly() {
+    let (_ctx, server) = boot_server().await;
+
+    let response = server.get("/backoffice/login").await;
+    let body = response.text();
+
+    assert_eq!(response.status_code(), 200, "{body}");
+    assert!(body.contains("Unlock Backoffice"), "{body}");
+}
+
+#[tokio::test]
+#[serial]
 async fn can_log_in_and_edit_art_metadata() {
     let (ctx, server) = boot_server().await;
     let art = arts::Model::create(

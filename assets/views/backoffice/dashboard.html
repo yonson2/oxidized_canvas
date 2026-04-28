@@ -1,0 +1,152 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}
+Backoffice Dashboard
+{% endblock title %}
+
+{% block content %}
+<!-- <section class="hero"> -->
+<!--   <span class="eyebrow">Control room</span> -->
+<!--   <h1>Gallery oversight without ceremony.</h1> -->
+<!--   <p class="muted">Track output cadence, inspect recent work, and jump straight into edits or AI-powered replacements.</p> -->
+<!-- </section> -->
+
+<section class="panel">
+  <div class="panel-body">
+    <div class="metric-grid">
+      <article class="metric-card">
+        <span class="eyebrow">Collection</span>
+        <strong>{{ stats.total_arts }}</strong>
+        <span class="muted">total published arts</span>
+      </article>
+      <article class="metric-card">
+        <span class="eyebrow">This week</span>
+        <strong>{{ stats.arts_last_7_days }}</strong>
+        <span class="muted">arts created in the last 7 days</span>
+      </article>
+      <article class="metric-card">
+        <span class="eyebrow">This month</span>
+        <strong>{{ stats.arts_last_30_days }}</strong>
+        <span class="muted">arts created in the last 30 days</span>
+      </article>
+      <article class="metric-card">
+        <span class="eyebrow">Mix lab</span>
+        <strong>{{ stats.total_mixes }}</strong>
+        <span class="muted">generated mixes in the archive</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="split-grid">
+  <article class="panel">
+    <div class="panel-body">
+      <div class="section-heading">
+        <div>
+          <h2 class="section-title">Recent artwork</h2>
+          <p>The latest four pieces ready for inspect, edit, or replacement.</p>
+        </div>
+        <a class="button" href="/backoffice/arts">Browse library</a>
+      </div>
+      <div class="art-grid">
+        {% for art in recent_arts %}
+          <a class="art-card" href="/backoffice/arts/{{ art.id }}">
+            <img src="/img/{{ art.id }}.webp" alt="{{ art.title }}">
+            <h3>#{{ art.id }} · {{ art.title }}</h3>
+            <div class="meta">
+              <span class="pill">{{ art.created_at | date(format="%Y-%m-%d") }}</span>
+              <span class="pill">{{ art.model | default(value="unknown model") }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-body">
+      <div class="section-heading">
+        <div>
+          <h2 class="section-title">Archive stats</h2>
+          <p>Quick context for cadence and model spread.</p>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="muted">Oldest art</span>
+          <strong>
+            {% if stats.oldest_art_at %}
+              {{ stats.oldest_art_at | date(format="%Y-%m-%d") }}
+            {% else %}
+              none yet
+            {% endif %}
+          </strong>
+        </div>
+        <div class="timeline-item">
+          <span class="muted">Newest art</span>
+          <strong>
+            {% if stats.newest_art_at %}
+              {{ stats.newest_art_at | date(format="%Y-%m-%d") }}
+            {% else %}
+              none yet
+            {% endif %}
+          </strong>
+        </div>
+        <div class="timeline-item">
+          <span class="muted">Updated in last 30 days</span>
+          <strong>{{ stats.updated_last_30_days }}</strong>
+        </div>
+        <div class="timeline-item">
+          <span class="muted">Latest update</span>
+          <strong>
+            {% if stats.newest_update_at %}
+              {{ stats.newest_update_at | date(format="%Y-%m-%d") }}
+            {% else %}
+              none yet
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+
+      <div style="margin-top: 22px;">
+        <h3 style="margin-top: 0;">Model usage</h3>
+        <div class="timeline">
+          {% for model_stat in stats.models %}
+            <div class="timeline-item">
+              <span class="muted">{{ model_stat.model | default(value="unknown model") }}</span>
+              <strong>{{ model_stat.count }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-body">
+    <div class="section-heading">
+      <div>
+        <h2 class="section-title">Recent mixes</h2>
+        <p>Browse the latest four mixed pieces and jump into delete-only management.</p>
+      </div>
+      <a class="button" href="/backoffice/mixes">Manage mixes</a>
+    </div>
+
+    <div class="art-grid">
+      {% for mix in recent_mixes %}
+        <a class="art-card" href="/backoffice/mixes/{{ mix.id }}">
+          <img src="/mix/img/{{ mix.id }}.webp" alt="{{ mix.title }}">
+          <h3>#{{ mix.id }} · {{ mix.title }}</h3>
+          <p class="muted">{{ mix.prompt | truncate(length=140) }}</p>
+          <div class="meta">
+            <span class="pill">{{ mix.created_at | date(format="%Y-%m-%d") }}</span>
+            <span class="pill">{{ mix.model }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock content %}

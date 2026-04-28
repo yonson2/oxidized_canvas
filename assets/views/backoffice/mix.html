@@ -1,0 +1,69 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}
+Mix #{{ item.id }}
+{% endblock title %}
+
+{% block content %}
+<section class="split-grid">
+  <article class="panel">
+    <div class="panel-body">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Mix #{{ item.id }}</span>
+          <h1 class="section-title">{{ item.title }}</h1>
+          <p>Inspect the generated mix and review which artworks were combined to create it.</p>
+        </div>
+        <div class="actions">
+          <a class="button" href="/mix/{{ item.id }}" target="_blank" rel="noreferrer">Open public mix page</a>
+          <a class="button" href="/backoffice/mixes">Back to mixes</a>
+        </div>
+      </div>
+
+      <div class="art-frame">
+        <img src="/mix/img/{{ item.id }}.webp" alt="{{ item.title }}">
+      </div>
+
+      <div class="meta" style="margin-top: 18px;">
+        <span class="pill">Created {{ item.created_at | date(format="%Y-%m-%d") }}</span>
+        <span class="pill">Updated {{ item.updated_at | date(format="%Y-%m-%d") }}</span>
+        <span class="pill">{{ item.model }}</span>
+        <span class="pill">UUID {{ item.uuid }}</span>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-body">
+      <div class="section-heading">
+        <div>
+          <h2 class="section-title">Mixed from</h2>
+          <p>These artworks were used as the source set for this mix.</p>
+        </div>
+      </div>
+
+      <div class="info-card" style="margin-bottom: 18px;">
+        <h3 style="margin-top: 0;">Source artworks</h3>
+        <div class="meta">
+          {% for id in art_ids %}
+            <a class="pill" href="/backoffice/arts/{{ id }}">Art #{{ id }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="info-card" style="margin-bottom: 18px;">
+        <h3 style="margin-top: 0;">Prompt</h3>
+        <p class="muted" style="white-space: pre-wrap; line-height: 1.6;">{{ item.prompt }}</p>
+      </div>
+
+      <form method="post" action="/backoffice/mixes/{{ item.id }}/delete">
+        <div class="info-card">
+          <h3 style="margin-top: 0;">Delete this mix</h3>
+          <p class="muted">This permanently removes the mix from the archive. Any join rows in `mixarts` are removed automatically.</p>
+          <button class="button button-danger" type="submit" onclick="return confirm('Delete this mix permanently?');">Delete Mix</button>
+        </div>
+      </form>
+    </div>
+  </article>
+</section>
+{% endblock content %}

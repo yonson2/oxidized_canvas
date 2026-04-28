@@ -1,0 +1,60 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}
+Backoffice Library
+{% endblock title %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-body">
+    <div class="section-heading">
+      <div>
+        <h1 class="section-title">Artwork library</h1>
+        <p>{{ page.total_items }} result{% if page.total_items != 1 %}s{% endif %} across the full archive.</p>
+      </div>
+    </div>
+
+    <form method="get" action="/backoffice/arts" class="search-row" style="margin-bottom: 20px;">
+      <input type="search" name="q" value="{{ page.query | default(value="") }}" placeholder="Search by id, title, prompt, or model">
+      <button class="button button-accent" type="submit">Search</button>
+      {% if page.query %}
+        <a class="button" href="/backoffice/arts">Clear</a>
+      {% endif %}
+    </form>
+
+    <div class="art-grid">
+      {% for art in page.items %}
+        <a class="art-card" href="/backoffice/arts/{{ art.id }}">
+          <img src="/img/{{ art.id }}.webp" alt="{{ art.title }}">
+          <h3>#{{ art.id }} · {{ art.title }}</h3>
+          <p class="muted">{{ art.prompt | truncate(length=140) }}</p>
+          <div class="meta">
+            <span class="pill">{{ art.created_at | date(format="%Y-%m-%d") }}</span>
+            <span class="pill">{{ art.model | default(value="unknown model") }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="pager" style="margin-top: 22px; justify-content: space-between;">
+      <span class="muted">Page {{ page.page }} of {{ page.total_pages | default(value=1) }}</span>
+      <div class="actions">
+        {% if page.previous_page %}
+          {% if page.query %}
+            <a class="button" href="/backoffice/arts?page={{ page.previous_page }}&q={{ page.query | urlencode }}">Previous</a>
+          {% else %}
+            <a class="button" href="/backoffice/arts?page={{ page.previous_page }}">Previous</a>
+          {% endif %}
+        {% endif %}
+        {% if page.next_page %}
+          {% if page.query %}
+            <a class="button" href="/backoffice/arts?page={{ page.next_page }}&q={{ page.query | urlencode }}">Next</a>
+          {% else %}
+            <a class="button" href="/backoffice/arts?page={{ page.next_page }}">Next</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}
