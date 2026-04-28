@@ -31,6 +31,7 @@ pub fn routes() -> Routes {
         .add("/arts/{id}", post(update))
         .add("/arts/{id}/delete", post(delete))
         .add("/arts/{id}/replace", post(replace))
+        .add("/arts/{id}/rerender", post(rerender))
         .add("/mixes", get(mix_index))
         .add("/mixes/{id}", get(mix_show))
         .add("/mixes/{id}/delete", post(mix_delete))
@@ -149,9 +150,9 @@ pub async fn show(
         return Ok(response);
     }
 
-    let notice = query.queued.map(|_| {
-        "Regeneration started in the background. Refresh this page in a bit to see the updated art."
-    });
+    let notice = query
+        .queued
+        .map(|_| "Regeneration started. Live progress updates will appear here.");
 
     render_art_detail(&ctx, &v, id, notice, None).await
 }
@@ -207,12 +208,36 @@ pub async fn replace(
         return Ok(response);
     }
 
-    load_item(&ctx, id).await?;
+    let item = load_item(&ctx, id).await?;
+    let art_uuid = item.uuid;
 
     let ctx = ctx.clone();
     tokio::spawn(async move {
-        if let Err(err) = art_service::replace_art(&ctx, id).await {
+        if let Err(err) = art_service::replace_art_with_progress(&ctx, id, art_uuid).await {
             error!(art_id = id, error = %err, "background art regeneration failed");
+        }
+    });
+
+    Ok(Redirect::to(&format!("/backoffice/arts/{id}?queued=1")).into_response())
+}
+
+#[debug_handler]
+pub async fn rerender(
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    jar: CookieJar,
+) -> Result<Response> {
+    if let Some(response) = require_auth(&ctx, &jar)? {
+        return Ok(response);
+    }
+
+    let item = load_item(&ctx, id).await?;
+    let art_uuid = item.uuid;
+
+    let ctx = ctx.clone();
+    tokio::spawn(async move {
+        if let Err(err) = art_service::rerender_art_image_with_progress(&ctx, id, art_uuid).await {
+            error!(art_id = id, error = %err, "background image-only regeneration failed");
         }
     });
 

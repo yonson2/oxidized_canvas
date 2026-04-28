@@ -12,6 +12,7 @@ Create a new Mix - ImaginaryGallery
 
 <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
 <style>
 .choices {
   background-color: rgb(24 24 27) !important;
@@ -153,6 +154,7 @@ Create a new Mix - ImaginaryGallery
         </button>
       </div>
       <div id="loader" class="loader"></div>
+      <p id="mix-status" class="mt-4 min-h-[1.5rem] text-center text-sm text-slate-300"></p>
     </nav>
   </form>
 </div>
@@ -161,6 +163,51 @@ Create a new Mix - ImaginaryGallery
 document.addEventListener('DOMContentLoaded', function() {
   const element = document.getElementById('art-select');
   const form = document.getElementById('mix-form');
+  const button = document.getElementById('mix-button');
+  const buttonText = document.getElementById('button-text');
+  const loader = document.getElementById('loader');
+  const status = document.getElementById('mix-status');
+  const socket = window.io ? window.io() : null;
+  let activeRequestId = null;
+  let hasRedirected = false;
+
+  function setStatus(message, isError) {
+    status.textContent = message || '';
+    status.classList.toggle('text-rose-300', Boolean(isError));
+    status.classList.toggle('text-slate-300', !isError);
+  }
+
+  function resetForm(message) {
+    activeRequestId = null;
+    hasRedirected = false;
+    form.classList.remove('form-disabled');
+    button.disabled = false;
+    buttonText.textContent = 'Mix!';
+    loader.style.display = 'none';
+    setStatus(message || '');
+  }
+
+  if (socket) {
+    socket.on('connect', function() {
+      if (activeRequestId) {
+        socket.emit('subscribe-mix', activeRequestId);
+      }
+    });
+
+    socket.on('mix-progress', function(update) {
+      setStatus(update.message, update.failed);
+
+      if (update.failed) {
+        resetForm(update.message || 'The mix could not be completed.');
+        return;
+      }
+
+      if (update.done && update.redirectTo && !hasRedirected) {
+        hasRedirected = true;
+        window.location.href = update.redirectTo;
+      }
+    });
+  }
   
   const choices = new Choices(element, {
     removeItemButton: true,
@@ -186,17 +233,21 @@ document.addEventListener('DOMContentLoaded', function() {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const selectedValues = choices.getValue(true);
+    const selectedValues = [].concat(choices.getValue(true));
     const artIds = selectedValues.map(id => parseInt(id));
-    const button = document.getElementById('mix-button');
-    const buttonText = document.getElementById('button-text');
-    const loader = document.getElementById('loader');
+    activeRequestId = crypto.randomUUID();
+    hasRedirected = false;
     
     // Disable form and show loading state
     form.classList.add('form-disabled');
     button.disabled = true;
     buttonText.textContent = 'Mixing...';
     loader.style.display = 'block';
+    setStatus('Connecting to live updates...');
+
+    if (socket && socket.connected) {
+      socket.emit('subscribe-mix', activeRequestId);
+    }
     
     console.log('Sending art IDs:', artIds);
     
@@ -206,28 +257,24 @@ document.addEventListener('DOMContentLoaded', function() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        art_ids: artIds
+        art_ids: artIds,
+        request_id: activeRequestId
       })
     })
     .then(response => {
       if (response.ok) {
         // Redirect to the response URL or a default success page
-        window.location.href = response.url || '/';
+        if (!hasRedirected) {
+          hasRedirected = true;
+          window.location.href = response.url || '/';
+        }
       } else {
-        // Re-enable form on error
-        form.classList.remove('form-disabled');
-        button.disabled = false;
-        buttonText.textContent = 'Mix!';
-        loader.style.display = 'none';
+        resetForm('The mix could not be completed.');
         console.error('Error creating mix');
       }
     })
     .catch((error) => {
-      // Re-enable form on error
-      form.classList.remove('form-disabled');
-      button.disabled = false;
-      buttonText.textContent = 'Mix!';
-      loader.style.display = 'none';
+      resetForm('The mix could not be completed.');
       console.error('Error:', error);
     });
   });

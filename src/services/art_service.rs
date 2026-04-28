@@ -4,9 +4,10 @@ use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use crate::{
     common::settings::Settings,
     models::arts::{self, ArtParams},
-    services::{providers::TextProvider, service_provider::ServiceProvider},
+    services::{providers::TextProvider, realtime, service_provider::ServiceProvider},
     tasks::art_prompts::{IMAGE_PROMPT, SAMPLE_PROMPTS, SAMPLE_TITLES, TITLE_PROMPT},
 };
+use uuid::Uuid;
 
 fn settings(ctx: &AppContext) -> Result<Settings> {
     Settings::from_json(
@@ -65,9 +66,70 @@ pub async fn create_art(ctx: &AppContext) -> Result<arts::Model> {
 }
 
 pub async fn replace_art(ctx: &AppContext, art_id: i32) -> Result<arts::Model> {
+    replace_art_inner(ctx, art_id, None).await
+}
+
+pub async fn replace_art_with_progress(
+    ctx: &AppContext,
+    art_id: i32,
+    art_uuid: Uuid,
+) -> Result<arts::Model> {
+    let result = replace_art_inner(ctx, art_id, Some(art_uuid)).await;
+
+    if result.is_err() {
+        realtime::emit_art_replace_progress(
+            &art_uuid,
+            &realtime::ProgressUpdate::failed(
+                "failed",
+                "The regeneration failed before the updated art could be saved.",
+            ),
+        )
+        .await;
+    }
+
+    result
+}
+
+pub async fn rerender_art_image_with_progress(
+    ctx: &AppContext,
+    art_id: i32,
+    art_uuid: Uuid,
+) -> Result<arts::Model> {
+    let result = rerender_art_image_inner(ctx, art_id, Some(art_uuid)).await;
+
+    if result.is_err() {
+        realtime::emit_art_replace_progress(
+            &art_uuid,
+            &realtime::ProgressUpdate::failed(
+                "failed",
+                "The image-only regeneration failed before the updated art could be saved.",
+            ),
+        )
+        .await;
+    }
+
+    result
+}
+
+async fn replace_art_inner(
+    ctx: &AppContext,
+    art_id: i32,
+    progress_art_uuid: Option<Uuid>,
+) -> Result<arts::Model> {
     let settings = settings(ctx)?;
     let img_gen = ServiceProvider::random_img_service(&settings);
     let text_gen = ServiceProvider::txt_service(&TextProvider::Anthropic, &settings.anthropic_key);
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new(
+                "preparing",
+                "Preparing a fresh prompt from the latest gallery context...",
+            ),
+        )
+        .await;
+    }
 
     let art_to_replace = arts::Entity::find_by_id(art_id)
         .one(&ctx.db)
@@ -86,10 +148,32 @@ pub async fn replace_art(ctx: &AppContext, art_id: i32) -> Result<arts::Model> {
         .await
         .map_err(|e| Error::Message(format!("Failed to generate image prompt: {e}")))?;
 
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new(
+                "rendering",
+                "Prompt ready. Generating the replacement image now...",
+            ),
+        )
+        .await;
+    }
+
     let image = img_gen
         .generate(&prompt)
         .await
         .map_err(|e| Error::Message(format!("Failed to generate image: {e}")))?;
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new(
+                "titling",
+                "Image rendered. Writing a new title and final metadata...",
+            ),
+        )
+        .await;
+    }
 
     let title_generator_prompt = if recent_arts.len() > 1 {
         gen_replace_title_prompt(&prompt, &recent_arts)
@@ -111,7 +195,106 @@ pub async fn replace_art(ctx: &AppContext, art_id: i32) -> Result<arts::Model> {
     art_active_model.model = Set(Some(img_gen.model_name()));
     art_active_model.updated_at = Set(chrono::Utc::now().into());
 
-    art_active_model.update(&ctx.db).await.map_err(Into::into)
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new(
+                "saving",
+                "Saving the regenerated art and refreshing the page...",
+            ),
+        )
+        .await;
+    }
+
+    let updated_art = art_active_model
+        .update(&ctx.db)
+        .await
+        .map_err(Error::from)?;
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::done(
+                "complete",
+                "Regeneration finished. Reloading this art with the new result...",
+            ),
+        )
+        .await;
+    }
+
+    Ok(updated_art)
+}
+
+async fn rerender_art_image_inner(
+    ctx: &AppContext,
+    art_id: i32,
+    progress_art_uuid: Option<Uuid>,
+) -> Result<arts::Model> {
+    let settings = settings(ctx)?;
+    let img_gen = ServiceProvider::random_img_service(&settings);
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new(
+                "preparing",
+                "Loading the saved prompt and picking a model for a new render...",
+            ),
+        )
+        .await;
+    }
+
+    let art_to_replace = arts::Entity::find_by_id(art_id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::string(&format!("Art with ID {art_id} not found")))?;
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new(
+                "rendering",
+                "Using the saved prompt to generate a fresh image...",
+            ),
+        )
+        .await;
+    }
+
+    let image = img_gen
+        .generate(&art_to_replace.prompt)
+        .await
+        .map_err(|e| Error::Message(format!("Failed to generate image: {e}")))?;
+
+    let mut art_active_model: arts::ActiveModel = art_to_replace.into();
+    art_active_model.image = Set(image);
+    art_active_model.model = Set(Some(img_gen.model_name()));
+    art_active_model.updated_at = Set(chrono::Utc::now().into());
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::new("saving", "Saving the new image and updated model..."),
+        )
+        .await;
+    }
+
+    let updated_art = art_active_model
+        .update(&ctx.db)
+        .await
+        .map_err(Error::from)?;
+
+    if let Some(art_uuid) = progress_art_uuid.as_ref() {
+        realtime::emit_art_replace_progress(
+            art_uuid,
+            &realtime::ProgressUpdate::done(
+                "complete",
+                "The new image is ready. Reloading this art now...",
+            ),
+        )
+        .await;
+    }
+
+    Ok(updated_art)
 }
 
 fn gen_create_title_prompt(

@@ -34,14 +34,19 @@ impl Hooks for App {
         )
     }
 
-    async fn boot(mode: StartMode, environment: &Environment, config: Config) -> Result<BootResult> {
+    async fn boot(
+        mode: StartMode,
+        environment: &Environment,
+        config: Config,
+    ) -> Result<BootResult> {
         create_app::<Self, Migrator>(mode, environment, config).await
     }
 
     async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
-        Ok(vec![Box::new(
-            initializers::view_engine::ViewEngineInitializer,
-        )])
+        Ok(vec![
+            Box::new(initializers::view_engine::ViewEngineInitializer),
+            Box::new(initializers::realtime::RealtimeInitializer),
+        ])
     }
 
     fn routes(_ctx: &AppContext) -> AppRoutes {

@@ -4,10 +4,12 @@
 Edit Art #{{ item.id }}
 {% endblock title %}
 
+{% block head %}
+<script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+{% endblock head %}
+
 {% block content %}
-{% if notice %}
-  <div class="notice">{{ notice }}</div>
-{% endif %}
+<div id="replace-status" class="notice"{% if not notice %} style="display:none;"{% endif %}>{{ notice | default(value="") }}</div>
 {% if error %}
   <div class="error">{{ error }}</div>
 {% endif %}
@@ -75,11 +77,19 @@ Edit Art #{{ item.id }}
         </div>
       </form>
 
-      <form method="post" action="/backoffice/arts/{{ item.id }}/replace" style="margin-top: 18px;">
+      <form method="post" action="/backoffice/arts/{{ item.id }}/rerender" class="regeneration-form" style="margin-top: 18px;">
         <div class="info-card">
-          <h3 style="margin-top: 0;">Queue a new generated image</h3>
-          <p class="muted">This starts the replacement pipeline in the background, then updates the image, prompt, title, model, and timestamp while keeping the same art id.</p>
-          <button class="button button-danger" type="submit">Start Regeneration</button>
+          <h3 style="margin-top: 0;">Regenerate image only</h3>
+          <p class="muted">Keep the saved title and prompt, but render a fresh image with a randomly selected image model. The stored model is updated when the render completes.</p>
+          <button class="button button-accent regeneration-button" type="submit" data-idle-label="Regenerate Image Only" data-pending-label="Rendering New Image...">Regenerate Image Only</button>
+        </div>
+      </form>
+
+      <form method="post" action="/backoffice/arts/{{ item.id }}/replace" class="regeneration-form" style="margin-top: 18px;">
+        <div class="info-card">
+          <h3 style="margin-top: 0;">Regenerate prompt, title, and image</h3>
+          <p class="muted">This starts the full replacement pipeline in the background, then updates the image, prompt, title, model, and timestamp while keeping the same art id.</p>
+          <button class="button button-danger regeneration-button" type="submit" data-idle-label="Start Full Regeneration" data-pending-label="Running Full Regeneration...">Start Full Regeneration</button>
         </div>
       </form>
 
@@ -93,4 +103,99 @@ Edit Art #{{ item.id }}
     </div>
   </article>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const forms = Array.from(document.querySelectorAll('.regeneration-form'));
+  const buttons = Array.from(document.querySelectorAll('.regeneration-button'));
+  const status = document.getElementById('replace-status');
+  const artUuid = '{{ item.uuid }}';
+  const socket = window.io ? window.io() : null;
+  let subscribed = false;
+
+  function setButtonsDisabled(disabled) {
+    buttons.forEach(function(button) {
+      button.disabled = disabled;
+      if (!disabled) {
+        button.textContent = button.dataset.idleLabel;
+      }
+    });
+  }
+
+  function setStatus(message, isError) {
+    status.style.display = 'block';
+    status.className = isError ? 'error' : 'notice';
+    status.textContent = message;
+  }
+
+  function subscribeToProgress() {
+    if (subscribed || !socket) {
+      return;
+    }
+
+    subscribed = true;
+    if (socket.connected) {
+      socket.emit('subscribe-art-replace', artUuid);
+      return;
+    }
+
+    socket.once('connect', function() {
+      socket.emit('subscribe-art-replace', artUuid);
+    });
+  }
+
+  if (socket) {
+    socket.on('art-replace-progress', function(update) {
+      setStatus(update.message, update.failed);
+
+      if (update.failed) {
+        setButtonsDisabled(false);
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+
+      if (update.done) {
+        window.setTimeout(function() {
+          window.location.href = window.location.pathname;
+        }, 900);
+      }
+    });
+  }
+
+  if (new URLSearchParams(window.location.search).has('queued')) {
+    subscribeToProgress();
+  }
+
+  forms.forEach(function(form) {
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const button = form.querySelector('.regeneration-button');
+
+      setButtonsDisabled(true);
+      button.textContent = button.dataset.pendingLabel;
+      setStatus('Regeneration started. Live updates will appear here.', false);
+      subscribeToProgress();
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Unable to start regeneration');
+          }
+
+          window.history.replaceState({}, '', window.location.pathname + '?queued=1');
+        })
+        .catch(function(error) {
+          setButtonsDisabled(false);
+          setStatus('The regeneration could not be started.', true);
+          console.error(error);
+        });
+    });
+  });
+});
+</script>
 {% endblock content %}

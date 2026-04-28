@@ -14,7 +14,11 @@ pub struct ServiceProvider {}
 
 fn is_configured(key: &str) -> bool {
     let key = key.trim();
-    !key.is_empty() && !matches!(key, "change_me" | "bfl_api_key_goes_here" | "google_api_key_goes_here")
+    !key.is_empty()
+        && !matches!(
+            key,
+            "change_me" | "bfl_api_key_goes_here" | "google_api_key_goes_here"
+        )
 }
 
 impl ServiceProvider {

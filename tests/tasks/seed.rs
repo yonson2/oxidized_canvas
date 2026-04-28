@@ -1,8 +1,4 @@
-use loco_rs::{
-    boot::run_task,
-    task,
-    testing::request::boot_test,
-};
+use loco_rs::{boot::run_task, task, testing::request::boot_test};
 use oxidized_canvas::app::App;
 use serial_test::serial;
 
