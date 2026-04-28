@@ -10,7 +10,8 @@ use crate::errors::Error;
 
 const GOOGLE_API_TEXT_ENDPOINT: &str =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
-const GOOGLE_API_IMAGE_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent";
+const GOOGLE_API_IMAGE_ENDPOINT: &str =
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent";
 
 pub struct GoogleService {
     api_key: String,
@@ -116,7 +117,7 @@ impl TextGenerator for GoogleService {
 #[async_trait]
 impl ImageGenerator for GoogleService {
     fn model_name(&self) -> String {
-        "Google: gemini-3.1-flash-image-preview".into()
+        "Google: gemini-3-pro-image-preview".into()
     }
     async fn generate(&self, prompt: &str) -> Result<String, Error> {
         let payload = ureq::json!({
@@ -124,7 +125,13 @@ impl ImageGenerator for GoogleService {
                 "parts": [{
                     "text": prompt
                 }]
-            }]
+            }],
+            "generationConfig": {
+                "responseModalities": ["IMAGE"],
+                "imageConfig": {
+                    "aspectRatio": "1:1"
+                }
+            }
         });
 
         let response_result = ureq::post(GOOGLE_API_IMAGE_ENDPOINT)

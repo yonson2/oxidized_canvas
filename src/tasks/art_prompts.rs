@@ -57,4 +57,3 @@ Your primary goal is to create a beautiful, compelling, and artistic image promp
 Analyze the above prompts and create a single artwork that harmoniously blends their subjects, styles, moods, colors, and artistic approaches. Look for connecting themes - whether visual, emotional, or stylistic - that can unite disparate elements into one compelling composition.
 
 Please give me *just* the prompt surrounded by single quotes and nothing more before or after it. This is EXTREMELY important. The prompt should be a concise yet descriptive instruction for an image generation AI.";
-
