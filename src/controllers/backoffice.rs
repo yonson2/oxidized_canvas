@@ -11,6 +11,7 @@ use axum_extra::extract::cookie::CookieJar;
 use loco_rs::prelude::*;
 use sea_orm::EntityTrait;
 use serde::Deserialize;
+use tracing::error;
 
 use crate::{
     models::arts::{self, ArtUpdateParams},
@@ -50,6 +51,11 @@ pub struct ArtListQuery {
 #[derive(Debug, Deserialize, Default)]
 pub struct MixListQuery {
     page: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct ArtDetailQuery {
+    queued: Option<u8>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -139,12 +145,18 @@ pub async fn show(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
     jar: CookieJar,
+    query: Option<Query<ArtDetailQuery>>,
 ) -> Result<Response> {
     if let Some(response) = require_auth(&ctx, &jar)? {
         return Ok(response);
     }
 
-    render_art_detail(&ctx, &v, id, None, None).await
+    let query = query.map(|Query(query)| query).unwrap_or_default();
+    let notice = query.queued.map(|_| {
+        "Regeneration started in the background. Refresh this page in a bit to see the updated art."
+    });
+
+    render_art_detail(&ctx, &v, id, notice, None).await
 }
 
 #[debug_handler]
@@ -191,7 +203,6 @@ pub async fn update(
 #[debug_handler]
 pub async fn replace(
     Path(id): Path<i32>,
-    ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
     jar: CookieJar,
 ) -> Result<Response> {
@@ -199,19 +210,16 @@ pub async fn replace(
         return Ok(response);
     }
 
-    match art_service::replace_art(&ctx, id).await {
-        Ok(_) => Ok(Redirect::to(&format!("/backoffice/arts/{id}")).into_response()),
-        Err(err) => {
-            render_art_detail(
-                &ctx,
-                &v,
-                id,
-                None,
-                Some(&format!("Image replacement failed: {err}")),
-            )
-            .await
+    load_item(&ctx, id).await?;
+
+    let ctx = ctx.clone();
+    tokio::spawn(async move {
+        if let Err(err) = art_service::replace_art(&ctx, id).await {
+            error!(art_id = id, error = %err, "background art regeneration failed");
         }
-    }
+    });
+
+    Ok(Redirect::to(&format!("/backoffice/arts/{id}?queued=1")).into_response())
 }
 
 #[debug_handler]

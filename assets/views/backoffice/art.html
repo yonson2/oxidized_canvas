@@ -77,9 +77,9 @@ Edit Art #{{ item.id }}
 
       <form method="post" action="/backoffice/arts/{{ item.id }}/replace" style="margin-top: 18px;">
         <div class="info-card">
-          <h3 style="margin-top: 0;">Replace with a new generated image</h3>
-          <p class="muted">This re-runs the replacement pipeline, updates the image, prompt, title, model, and timestamp, then keeps the same art id.</p>
-          <button class="button button-danger" type="submit">Regenerate This Art</button>
+          <h3 style="margin-top: 0;">Queue a new generated image</h3>
+          <p class="muted">This starts the replacement pipeline in the background, then updates the image, prompt, title, model, and timestamp while keeping the same art id.</p>
+          <button class="button button-danger" type="submit">Start Regeneration</button>
         </div>
       </form>
 
