@@ -25,7 +25,7 @@ Backoffice Library
     <div class="art-grid">
       {% for art in page.items %}
         <a class="art-card" href="/backoffice/arts/{{ art.id }}">
-          <img src="/img/{{ art.id }}.webp" alt="{{ art.title }}">
+          <img src="/img/{{ art.id }}.webp?v={{ art.updated_at | date(format="%s-%f") }}" alt="{{ art.title }}">
           <h3>#{{ art.id }} · {{ art.title }}</h3>
           <p class="muted">{{ art.prompt | truncate(length=140) }}</p>
           <div class="meta">

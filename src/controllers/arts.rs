@@ -79,7 +79,7 @@ pub async fn cursor_before_json(
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let results = Model::find_before_id(&ctx.db, id).await?;
-    let results = serde_json::json!({"results": results});
+    let results = serde_json::json!({"results": views::arts::list_response(&results)});
     format::json(results)
 }
 
@@ -89,7 +89,7 @@ pub async fn cursor_after_json(
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let results = Model::find_after_id(&ctx.db, id).await?;
-    let results = serde_json::json!({"results": results});
+    let results = serde_json::json!({"results": views::arts::list_response(&results)});
     format::json(results)
 }
 

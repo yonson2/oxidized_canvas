@@ -40,7 +40,7 @@
         <div class="flex flex-col items-center">
           <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
           <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md image-container" data-image-id="{{item.id}}">
-            <img class="object-contain sm:rounded-md" src="/img/{{item.id}}.webp" alt=""/>
+            <img class="object-contain sm:rounded-md" src="{{ item.image_url }}" alt=""/>
           </div>
         </div>
       </div>
@@ -178,7 +178,7 @@
             <div class="flex flex-col items-center">
               <h1 class="mb-4 font-medium text-xl dark:text-slate-100">${item.title}</h1>
               <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md image-container" data-image-id="${item.id}">
-                <img class="object-contain sm:rounded-md" src="/img/${item.id}.webp" alt=""/>
+                <img class="object-contain sm:rounded-md" src="${item.image_url}" alt=""/>
               </div>
             </div>
           `;
@@ -200,7 +200,7 @@
             <div class="flex flex-col items-center">
               <h1 class="mb-4 font-medium text-xl dark:text-slate-100">${item.title}</h1>
               <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md image-container" data-image-id="${item.id}">
-                <img class="object-contain sm:rounded-md" src="/img/${item.id}.webp" alt=""/>
+                <img class="object-contain sm:rounded-md" src="${item.image_url}" alt=""/>
               </div>
             </div>
           `;

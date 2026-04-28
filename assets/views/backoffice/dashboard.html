@@ -51,7 +51,7 @@ Backoffice Dashboard
       <div class="art-grid">
         {% for art in recent_arts %}
           <a class="art-card" href="/backoffice/arts/{{ art.id }}">
-            <img src="/img/{{ art.id }}.webp" alt="{{ art.title }}">
+            <img src="/img/{{ art.id }}.webp?v={{ art.updated_at | date(format="%s-%f") }}" alt="{{ art.title }}">
             <h3>#{{ art.id }} · {{ art.title }}</h3>
             <div class="meta">
               <span class="pill">{{ art.created_at | date(format="%Y-%m-%d") }}</span>

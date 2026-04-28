@@ -24,6 +24,16 @@ pub use super::_entities::arts::{self, ActiveModel, Entity, Model};
 pub const PAGE_SIZE: u64 = 5;
 pub const BACKOFFICE_PAGE_SIZE: u64 = 24;
 
+#[must_use]
+pub fn image_version(updated_at: &DateTimeWithTimeZone) -> String {
+    updated_at.format("%s-%f").to_string()
+}
+
+#[must_use]
+pub fn image_url(id: i32, updated_at: &DateTimeWithTimeZone) -> String {
+    format!("/img/{id}.webp?v={}", image_version(updated_at))
+}
+
 #[async_trait::async_trait]
 impl ActiveModelBehavior for super::_entities::arts::ActiveModel {
     async fn before_save<C>(self, _db: &C, insert: bool) -> Result<Self, DbErr>
@@ -224,7 +234,7 @@ impl super::_entities::arts::Model {
     pub async fn find_all_title_ids(db: &DatabaseConnection) -> ModelResult<Vec<ArtTitleId>> {
         let title_ids = arts::Entity::find()
             .select_only()
-            .columns([arts::Column::Id, arts::Column::Title])
+            .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
             .order_by_desc(arts::Column::CreatedAt)
             .into_partial_model::<ArtTitleId>()
             .all(db)
@@ -247,7 +257,7 @@ impl super::_entities::arts::Model {
             db,
             arts::Entity::find()
                 .select_only()
-                .columns([arts::Column::Id, arts::Column::Title])
+                .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
                 .order_by_desc(arts::Column::Id)
                 .into_partial_model::<ArtTitleId>(),
             pagination,
@@ -267,7 +277,7 @@ impl super::_entities::arts::Model {
     ) -> Result<Vec<ArtTitleId>, Error> {
         let arts = arts::Entity::find()
             .select_only()
-            .columns([arts::Column::Id, arts::Column::Title])
+            .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
             .cursor_by(arts::Column::Id)
             .into_partial_model::<ArtTitleId>()
             .before(id)
@@ -287,7 +297,7 @@ impl super::_entities::arts::Model {
     pub async fn find_after_id(db: &DatabaseConnection, id: i32) -> Result<Vec<ArtTitleId>, Error> {
         let arts = arts::Entity::find()
             .select_only()
-            .columns([arts::Column::Id, arts::Column::Title])
+            .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
             .cursor_by(arts::Column::Id)
             .into_partial_model::<ArtTitleId>()
             .after(id)
@@ -530,6 +540,7 @@ struct ArtUpdatedAt {
 pub struct ArtTitleId {
     pub id: i32,
     pub title: String,
+    pub updated_at: DateTimeWithTimeZone,
 }
 
 impl From<arts::Model> for ArtTitleId {
@@ -537,6 +548,7 @@ impl From<arts::Model> for ArtTitleId {
         Self {
             id: value.id,
             title: value.title,
+            updated_at: value.updated_at,
         }
     }
 }

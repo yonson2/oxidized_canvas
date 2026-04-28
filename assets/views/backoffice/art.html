@@ -33,7 +33,7 @@ Edit Art #{{ item.id }}
       </div>
 
       <div class="art-frame">
-        <img src="/img/{{ item.id }}.webp" alt="{{ item.title }}">
+        <img src="/img/{{ item.id }}.webp?v={{ item.updated_at | date(format="%s-%f") }}" alt="{{ item.title }}">
       </div>
 
       <div class="meta" style="margin-top: 18px;">
