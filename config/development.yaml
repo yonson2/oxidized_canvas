@@ -207,3 +207,4 @@ settings:
   anthropic_key: {{ get_env(name="ANTHROPIC_API_KEY", default="change_me") }}
   openai_key: {{ get_env(name="OPENAI_API_KEY", default="change_me") }}
   old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}
+  backoffice_password: {{ get_env(name="BACKOFFICE_PASSWORD", default="change_me") }}

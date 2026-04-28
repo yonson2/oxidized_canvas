@@ -4,18 +4,25 @@ use loco_rs::model::query::PageResponse;
 use loco_rs::model::query::PaginationQuery;
 use loco_rs::model::ModelResult;
 use loco_rs::prelude::model;
+use loco_rs::prelude::ActiveModelTrait;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
 use loco_rs::Error;
 use sea_orm::FromQueryResult;
 use sea_orm::TransactionTrait;
-use sea_orm::{entity::prelude::*, Order, QueryOrder, QuerySelect};
+use sea_orm::{
+    entity::prelude::*, ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait, QueryFilter,
+    QueryOrder, QuerySelect,
+};
 use serde::Deserialize;
 use serde::Serialize;
+
+use super::_entities::mixes;
 
 pub use super::_entities::arts::{self, ActiveModel, Entity, Model};
 
 pub const PAGE_SIZE: u64 = 5;
+pub const BACKOFFICE_PAGE_SIZE: u64 = 24;
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for super::_entities::arts::ActiveModel {
@@ -290,6 +297,163 @@ impl super::_entities::arts::Model {
 
         Ok(arts)
     }
+
+    pub async fn find_backoffice_page(
+        db: &DatabaseConnection,
+        page: u64,
+        search: Option<&str>,
+    ) -> Result<BackofficeArtList, Error> {
+        let page = page.max(1);
+        let search = search
+            .map(str::trim)
+            .filter(|term| !term.is_empty())
+            .map(ToOwned::to_owned);
+
+        let mut query = arts::Entity::find().order_by_desc(arts::Column::CreatedAt);
+        if let Some(term) = &search {
+            query = query.filter(backoffice_search_condition(term));
+        }
+
+        let paginator = query.paginate(db, BACKOFFICE_PAGE_SIZE);
+        let total_items = paginator.num_items().await?;
+        let total_pages = paginator.num_pages().await?;
+        let current_page = match total_pages {
+            0 => 1,
+            _ => page.min(total_pages),
+        };
+        let items = paginator.fetch_page(current_page.saturating_sub(1)).await?;
+
+        Ok(BackofficeArtList {
+            items,
+            page: current_page,
+            total_pages,
+            total_items,
+            query: search,
+            has_previous: current_page > 1,
+            has_next: total_pages > 0 && current_page < total_pages,
+            previous_page: (current_page > 1).then_some(current_page - 1),
+            next_page: (total_pages > 0 && current_page < total_pages).then_some(current_page + 1),
+        })
+    }
+
+    pub async fn backoffice_stats(db: &DatabaseConnection) -> Result<BackofficeStats, Error> {
+        let now = chrono::Utc::now();
+        let total_arts = arts::Entity::find().count(db).await?;
+        let total_mixes = mixes::Entity::find().count(db).await?;
+        let arts_last_7_days = arts::Entity::find()
+            .filter(arts::Column::CreatedAt.gte(now - chrono::Duration::days(7)))
+            .count(db)
+            .await?;
+        let arts_last_30_days = arts::Entity::find()
+            .filter(arts::Column::CreatedAt.gte(now - chrono::Duration::days(30)))
+            .count(db)
+            .await?;
+        let updated_last_30_days = arts::Entity::find()
+            .filter(arts::Column::UpdatedAt.gte(now - chrono::Duration::days(30)))
+            .count(db)
+            .await?;
+        let newest_art_at = arts::Entity::find()
+            .order_by_desc(arts::Column::CreatedAt)
+            .limit(1)
+            .select_only()
+            .column(arts::Column::CreatedAt)
+            .into_partial_model::<ArtCreatedAt>()
+            .one(db)
+            .await?
+            .map(|art| art.created_at);
+        let oldest_art_at = arts::Entity::find()
+            .order_by_asc(arts::Column::CreatedAt)
+            .limit(1)
+            .select_only()
+            .column(arts::Column::CreatedAt)
+            .into_partial_model::<ArtCreatedAt>()
+            .one(db)
+            .await?
+            .map(|art| art.created_at);
+        let newest_update_at = arts::Entity::find()
+            .order_by_desc(arts::Column::UpdatedAt)
+            .limit(1)
+            .select_only()
+            .column(arts::Column::UpdatedAt)
+            .into_partial_model::<ArtUpdatedAt>()
+            .one(db)
+            .await?
+            .map(|art| art.updated_at);
+        let models = arts::Entity::find()
+            .select_only()
+            .column(arts::Column::Model)
+            .column_as(Expr::col(arts::Column::Id).count(), "count")
+            .group_by(arts::Column::Model)
+            .order_by_desc(Expr::col(arts::Column::Id).count())
+            .into_model::<BackofficeModelStat>()
+            .all(db)
+            .await?;
+
+        Ok(BackofficeStats {
+            total_arts,
+            total_mixes,
+            arts_last_7_days,
+            arts_last_30_days,
+            updated_last_30_days,
+            newest_art_at,
+            oldest_art_at,
+            newest_update_at,
+            models,
+        })
+    }
+
+    pub async fn update_details(
+        db: &DatabaseConnection,
+        id: i32,
+        params: &ArtUpdateParams,
+    ) -> ModelResult<Self> {
+        let art = arts::Entity::find_by_id(id)
+            .one(db)
+            .await?
+            .ok_or_else(|| ModelError::EntityNotFound)?;
+
+        let mut art_active_model: ActiveModel = art.into();
+        art_active_model.title = ActiveValue::set(params.title.clone());
+        art_active_model.prompt = ActiveValue::set(params.prompt.clone());
+        art_active_model.model = ActiveValue::set(params.model.clone());
+        art_active_model.updated_at = ActiveValue::set(chrono::Utc::now().into());
+
+        art_active_model.update(db).await.map_err(Into::into)
+    }
+
+    pub async fn delete_by_id(db: &DatabaseConnection, id: i32) -> ModelResult<()> {
+        let art = arts::Entity::find_by_id(id)
+            .one(db)
+            .await?
+            .ok_or_else(|| ModelError::EntityNotFound)?;
+
+        art.delete(db).await?;
+        Ok(())
+    }
+
+    pub async fn find_previous_id(db: &DatabaseConnection, id: i32) -> ModelResult<Option<i32>> {
+        Ok(arts::Entity::find()
+            .filter(arts::Column::Id.lt(id))
+            .order_by_desc(arts::Column::Id)
+            .select_only()
+            .column(arts::Column::Id)
+            .into_partial_model::<ArtId>()
+            .one(db)
+            .await?
+            .map(|art| art.id))
+    }
+
+    pub async fn find_next_id(db: &DatabaseConnection, id: i32) -> ModelResult<Option<i32>> {
+        Ok(arts::Entity::find()
+            .filter(arts::Column::Id.gt(id))
+            .order_by_asc(arts::Column::Id)
+            .select_only()
+            .column(arts::Column::Id)
+            .into_partial_model::<ArtId>()
+            .one(db)
+            .await?
+            .map(|art| art.id))
+    }
 }
 
 pub struct ArtParams {
@@ -297,6 +461,44 @@ pub struct ArtParams {
     pub prompt: String,
     pub title: String,
     pub model: Option<String>,
+}
+
+pub struct ArtUpdateParams {
+    pub title: String,
+    pub prompt: String,
+    pub model: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BackofficeArtList {
+    pub items: Vec<Model>,
+    pub page: u64,
+    pub total_pages: u64,
+    pub total_items: u64,
+    pub query: Option<String>,
+    pub has_previous: bool,
+    pub has_next: bool,
+    pub previous_page: Option<u64>,
+    pub next_page: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BackofficeStats {
+    pub total_arts: u64,
+    pub total_mixes: u64,
+    pub arts_last_7_days: u64,
+    pub arts_last_30_days: u64,
+    pub updated_last_30_days: u64,
+    pub newest_art_at: Option<DateTimeWithTimeZone>,
+    pub oldest_art_at: Option<DateTimeWithTimeZone>,
+    pub newest_update_at: Option<DateTimeWithTimeZone>,
+    pub models: Vec<BackofficeModelStat>,
+}
+
+#[derive(FromQueryResult, Serialize, Deserialize, Debug)]
+pub struct BackofficeModelStat {
+    pub model: Option<String>,
+    pub count: i64,
 }
 
 #[derive(DerivePartialModel, FromQueryResult)]
@@ -309,6 +511,18 @@ struct ArtId {
 #[sea_orm(entity = "Entity")]
 struct ArtImage {
     pub image: String,
+}
+
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "Entity")]
+struct ArtCreatedAt {
+    pub created_at: DateTimeWithTimeZone,
+}
+
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "Entity")]
+struct ArtUpdatedAt {
+    pub updated_at: DateTimeWithTimeZone,
 }
 
 #[derive(DerivePartialModel, FromQueryResult, Serialize, Deserialize, Debug)]
@@ -325,4 +539,17 @@ impl From<arts::Model> for ArtTitleId {
             title: value.title,
         }
     }
+}
+
+fn backoffice_search_condition(term: &str) -> Condition {
+    let mut condition = Condition::any()
+        .add(arts::Column::Title.contains(term))
+        .add(arts::Column::Prompt.contains(term))
+        .add(arts::Column::Model.contains(term));
+
+    if let Ok(id) = term.parse::<i32>() {
+        condition = condition.add(arts::Column::Id.eq(id));
+    }
+
+    condition
 }

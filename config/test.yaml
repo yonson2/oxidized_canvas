@@ -165,7 +165,7 @@ mailer:
 # Database Configuration
 database:
   # Database connection URI
-  uri: {{ get_env(name="DATABASE_URL", default="sqlite://oxidized_canvas_development.sqlite?mode=rwc") }}
+  uri: {{ get_env(name="TEST_DATABASE_URL", default="sqlite://oxidized_canvas_test.sqlite?mode=rwc") }}
   # When enabled, the sql query will be logged.
   enable_logging: false
   # Set the timeout duration when acquiring a connection.
@@ -189,6 +189,7 @@ queue:
   uri: {{ get_env(name="REDIS_URL", default="redis://127.0.0.1") }}
   # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_flush: false
+  kind: Postgres
 
 # Authentication Configuration
 auth:
@@ -202,3 +203,7 @@ auth:
 settings:
   bfl_api_key: {{ get_env(name="BFL_API_KEY", default="bfl_api_key_goes_here") }}
   anthropic_key: {{ get_env(name="ANTHROPIC_API_KEY", default="change_me") }}
+  gemini_api_key: {{ get_env(name="GEMINI_API_KEY", default="google_api_key_goes_here") }}
+  openai_key: {{ get_env(name="OPENAI_API_KEY", default="change_me") }}
+  old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}
+  backoffice_password: {{ get_env(name="BACKOFFICE_PASSWORD", default="change_me") }}

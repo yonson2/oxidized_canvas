@@ -47,6 +47,7 @@ impl Hooks for App {
     fn routes(_ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
             .add_route(controllers::arts::routes())
+            .add_route(controllers::backoffice::routes())
             .add_route(controllers::mixes::routes())
     }
 
@@ -59,6 +60,7 @@ impl Hooks for App {
         tasks.register(tasks::clean_titles::CleanTitles);
         tasks.register(tasks::import_arts::ImportArts);
         tasks.register(tasks::create_art::CreateArt);
+        tasks.register(tasks::replace_art::ReplaceArt);
         tasks.register(tasks::seed::SeedData);
         // tasks-inject (do not remove)
     }

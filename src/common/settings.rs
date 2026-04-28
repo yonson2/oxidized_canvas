@@ -8,6 +8,7 @@ pub struct Settings {
     pub openai_key: String,
     pub gemini_api_key: String,
     pub old_db_url: String,
+    pub backoffice_password: String,
 }
 
 impl Settings {
