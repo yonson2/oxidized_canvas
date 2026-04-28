@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use axum::async_trait;
-use base64::{engine::general_purpose, Engine};
-use image::{load_from_memory, ImageFormat};
+use base64::{Engine, engine::general_purpose};
+use image::{ImageFormat, load_from_memory};
 use serde::{Deserialize, Serialize};
 
 use super::traits::{ImageGenerator, TextGenerator};

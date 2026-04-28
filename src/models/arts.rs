@@ -1,18 +1,18 @@
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
+use loco_rs::Error;
+use loco_rs::model::ModelResult;
 use loco_rs::model::query;
 use loco_rs::model::query::PageResponse;
 use loco_rs::model::query::PaginationQuery;
-use loco_rs::model::ModelResult;
-use loco_rs::prelude::model;
 use loco_rs::prelude::ActiveModelTrait;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
-use loco_rs::Error;
+use loco_rs::prelude::model;
 use sea_orm::FromQueryResult;
 use sea_orm::TransactionTrait;
 use sea_orm::{
-    entity::prelude::*, ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect,
+    ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, entity::prelude::*,
 };
 use serde::Deserialize;
 use serde::Serialize;
@@ -234,7 +234,11 @@ impl super::_entities::arts::Model {
     pub async fn find_all_title_ids(db: &DatabaseConnection) -> ModelResult<Vec<ArtTitleId>> {
         let title_ids = arts::Entity::find()
             .select_only()
-            .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
+            .columns([
+                arts::Column::Id,
+                arts::Column::Title,
+                arts::Column::UpdatedAt,
+            ])
             .order_by_desc(arts::Column::CreatedAt)
             .into_partial_model::<ArtTitleId>()
             .all(db)
@@ -257,7 +261,11 @@ impl super::_entities::arts::Model {
             db,
             arts::Entity::find()
                 .select_only()
-                .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
+                .columns([
+                    arts::Column::Id,
+                    arts::Column::Title,
+                    arts::Column::UpdatedAt,
+                ])
                 .order_by_desc(arts::Column::Id)
                 .into_partial_model::<ArtTitleId>(),
             pagination,
@@ -277,7 +285,11 @@ impl super::_entities::arts::Model {
     ) -> Result<Vec<ArtTitleId>, Error> {
         let arts = arts::Entity::find()
             .select_only()
-            .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
+            .columns([
+                arts::Column::Id,
+                arts::Column::Title,
+                arts::Column::UpdatedAt,
+            ])
             .cursor_by(arts::Column::Id)
             .into_partial_model::<ArtTitleId>()
             .before(id)
@@ -297,7 +309,11 @@ impl super::_entities::arts::Model {
     pub async fn find_after_id(db: &DatabaseConnection, id: i32) -> Result<Vec<ArtTitleId>, Error> {
         let arts = arts::Entity::find()
             .select_only()
-            .columns([arts::Column::Id, arts::Column::Title, arts::Column::UpdatedAt])
+            .columns([
+                arts::Column::Id,
+                arts::Column::Title,
+                arts::Column::UpdatedAt,
+            ])
             .cursor_by(arts::Column::Id)
             .into_partial_model::<ArtTitleId>()
             .after(id)

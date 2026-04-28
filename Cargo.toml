@@ -3,7 +3,7 @@
 [package]
 name = "oxidized_canvas"
 version = "0.2.0"
-edition = "2021"
+edition = "2024"
 publish = false
 default-run = "oxidized_canvas-cli"
 

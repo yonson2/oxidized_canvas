@@ -32,7 +32,7 @@ async fn main() -> loco_rs::Result<()> {
 }
 
 fn save_image(base64_string: &str, filename: &str) {
-    use base64::{engine::general_purpose, Engine};
+    use base64::{Engine, engine::general_purpose};
     use std::fs::File;
     use std::io::Write;
 

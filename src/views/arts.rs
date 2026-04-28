@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{
     _entities::arts as art_entity,
-    arts::{image_url, ArtTitleId},
+    arts::{ArtTitleId, image_url},
 };
 
 /// Render a single arts view.

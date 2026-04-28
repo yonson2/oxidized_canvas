@@ -4,10 +4,7 @@ use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use crate::{
     common::settings::Settings,
     models::arts::{self, ArtParams},
-    services::{
-        providers::{ImageProvider, TextProvider},
-        service_provider::ServiceProvider,
-    },
+    services::{providers::TextProvider, service_provider::ServiceProvider},
     tasks::art_prompts::{IMAGE_PROMPT, SAMPLE_PROMPTS, SAMPLE_TITLES, TITLE_PROMPT},
 };
 
@@ -69,7 +66,7 @@ pub async fn create_art(ctx: &AppContext) -> Result<arts::Model> {
 
 pub async fn replace_art(ctx: &AppContext, art_id: i32) -> Result<arts::Model> {
     let settings = settings(ctx)?;
-    let img_gen = ServiceProvider::img_service(&ImageProvider::OpenAI, &settings.openai_key);
+    let img_gen = ServiceProvider::random_img_service(&settings);
     let text_gen = ServiceProvider::txt_service(&TextProvider::Anthropic, &settings.anthropic_key);
 
     let art_to_replace = arts::Entity::find_by_id(art_id)

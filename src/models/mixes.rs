@@ -1,12 +1,12 @@
 pub use super::_entities::mixes::{self, ActiveModel, Entity, Model};
-use base64::engine::general_purpose;
 use base64::Engine;
-use loco_rs::model::{self, ModelError, ModelResult};
+use base64::engine::general_purpose;
 use loco_rs::Error;
+use loco_rs::model::{self, ModelError, ModelResult};
 use sea_orm::FromQueryResult;
 use sea_orm::{
-    entity::prelude::*, ActiveValue, EntityTrait, PaginatorTrait, QueryOrder, QuerySelect,
-    TransactionTrait,
+    ActiveValue, EntityTrait, PaginatorTrait, QueryOrder, QuerySelect, TransactionTrait,
+    entity::prelude::*,
 };
 pub type Mixes = Entity;
 

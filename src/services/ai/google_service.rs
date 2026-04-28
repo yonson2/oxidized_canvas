@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use axum::async_trait;
-use base64::{engine::general_purpose, Engine};
-use image::{load_from_memory, ImageFormat};
+use base64::{Engine, engine::general_purpose};
+use image::{ImageFormat, load_from_memory};
 use serde::Deserialize;
 
 use super::traits::{ImageGenerator, TextGenerator};
@@ -10,8 +10,7 @@ use crate::errors::Error;
 
 const GOOGLE_API_TEXT_ENDPOINT: &str =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
-const GOOGLE_API_IMAGE_ENDPOINT: &str =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent";
+const GOOGLE_API_IMAGE_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent";
 
 pub struct GoogleService {
     api_key: String,

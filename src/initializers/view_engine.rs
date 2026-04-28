@@ -1,9 +1,9 @@
-use axum::{async_trait, Extension, Router as AxumRouter};
+use axum::{Extension, Router as AxumRouter, async_trait};
 use fluent_templates::{ArcLoader, FluentLoader};
 use loco_rs::{
-    app::{AppContext, Initializer},
-    controller::views::{engines, ViewEngine},
     Error, Result,
+    app::{AppContext, Initializer},
+    controller::views::{ViewEngine, engines},
 };
 use tracing::info;
 

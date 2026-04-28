@@ -1,7 +1,7 @@
 pub use super::_entities::mixarts::{self, ActiveModel, Entity, Model};
 use loco_rs::model::ModelResult;
 use sea_orm::FromQueryResult;
-use sea_orm::{entity::prelude::*, ActiveValue, QuerySelect, TransactionTrait};
+use sea_orm::{ActiveValue, QuerySelect, TransactionTrait, entity::prelude::*};
 pub type Mixarts = Entity;
 
 #[async_trait::async_trait]

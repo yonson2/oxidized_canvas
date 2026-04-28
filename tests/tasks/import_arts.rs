@@ -9,11 +9,13 @@ use serial_test::serial;
 async fn test_can_run_import_arts() {
     let boot = testing::boot_test::<App>().await.unwrap();
 
-    assert!(run_task::<App>(
-        &boot.app_context,
-        Some(&"import_arts".to_string()),
-        &task::Vars::default()
-    )
-    .await
-    .is_ok());
+    assert!(
+        run_task::<App>(
+            &boot.app_context,
+            Some(&"import_arts".to_string()),
+            &task::Vars::default()
+        )
+        .await
+        .is_ok()
+    );
 }

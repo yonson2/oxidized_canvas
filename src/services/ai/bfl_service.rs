@@ -3,8 +3,8 @@ use std::{io::Cursor, time::Duration};
 use async_std::task;
 
 use axum::async_trait;
-use base64::{engine::general_purpose, Engine};
-use image::{load_from_memory, ImageFormat};
+use base64::{Engine, engine::general_purpose};
+use image::{ImageFormat, load_from_memory};
 use serde::{Deserialize, Serialize};
 
 use super::traits::ImageGenerator;
@@ -52,11 +52,11 @@ impl ImageGenerator for BFLService {
                 .call()?
                 .into_json()?;
 
-            if img.status == "Ready" {
-                if let Some(u) = img.result {
-                    url = u.sample;
-                    break;
-                }
+            if img.status == "Ready"
+                && let Some(u) = img.result
+            {
+                url = u.sample;
+                break;
             }
         }
 

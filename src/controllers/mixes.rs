@@ -3,7 +3,7 @@
 #![allow(clippy::unused_async)]
 use axum::{
     debug_handler,
-    http::{header, StatusCode},
+    http::{StatusCode, header},
 };
 use loco_rs::prelude::*;
 use serde::Deserialize;

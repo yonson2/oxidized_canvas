@@ -3,7 +3,7 @@
 #![allow(clippy::unused_async)]
 use axum::debug_handler;
 use axum::extract::Query;
-use axum::http::{header, StatusCode};
+use axum::http::{StatusCode, header};
 use loco_rs::model::query::PaginationQuery;
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};

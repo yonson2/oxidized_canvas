@@ -2,10 +2,9 @@
 #![allow(clippy::unused_async)]
 
 use axum::{
-    debug_handler,
+    Form, debug_handler,
     extract::Query,
     response::{IntoResponse, Redirect},
-    Form,
 };
 use axum_extra::extract::cookie::CookieJar;
 use loco_rs::prelude::*;
