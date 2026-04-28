@@ -205,5 +205,5 @@ settings:
   anthropic_key: {{ get_env(name="ANTHROPIC_API_KEY", default="change_me") }}
   gemini_api_key: {{ get_env(name="GEMINI_API_KEY", default="google_api_key_goes_here") }}
   openai_key: {{ get_env(name="OPENAI_API_KEY", default="change_me") }}
-  old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}
+  old_db_url: {{ get_env(name="OLD_DB_URL", default="sqlite://oxidized_canvas_test.sqlite?mode=rwc") }}
   backoffice_password: {{ get_env(name="BACKOFFICE_PASSWORD", default="change_me") }}

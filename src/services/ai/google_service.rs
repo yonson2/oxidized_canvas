@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use axum::async_trait;
+use async_trait::async_trait;
 use base64::{Engine, engine::general_purpose};
 use image::{ImageFormat, load_from_memory};
 use serde::Deserialize;

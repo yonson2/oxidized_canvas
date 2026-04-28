@@ -31,8 +31,8 @@ pub fn routes() -> Routes {
         .prefix("/mix")
         .add("/", get(show_form))
         .add("/", post(create))
-        .add("/:id", get(show))
-        .add("/img/:id", get(serve_image))
+        .add("/{id}", get(show))
+        .add("/img/{id}", get(serve_image))
 }
 
 #[derive(Debug, Deserialize)]

@@ -2,7 +2,7 @@ use anthropic::{
     client::ClientBuilder,
     types::{ContentBlock, Message, MessagesRequestBuilder, Role},
 };
-use axum::async_trait;
+use async_trait::async_trait;
 
 use crate::errors::Error;
 

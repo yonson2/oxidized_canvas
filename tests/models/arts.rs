@@ -1,4 +1,4 @@
-use loco_rs::testing;
+use loco_rs::testing::{db::seed, request::boot_test};
 use oxidized_canvas::app::App;
 use serial_test::serial;
 
@@ -15,8 +15,8 @@ macro_rules! configure_insta {
 async fn test_model() {
     configure_insta!();
 
-    let boot = testing::boot_test::<App>().await.unwrap();
-    testing::seed::<App>(&boot.app_context.db).await.unwrap();
+    let boot = boot_test::<App>().await.unwrap();
+    seed::<App>(&boot.app_context).await.unwrap();
 
     // query your model, e.g.:
     //

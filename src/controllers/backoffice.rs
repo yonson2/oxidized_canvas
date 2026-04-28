@@ -27,13 +27,13 @@ pub fn routes() -> Routes {
         .add("/login", post(login))
         .add("/logout", post(logout))
         .add("/arts", get(index))
-        .add("/arts/:id", get(show))
-        .add("/arts/:id", post(update))
-        .add("/arts/:id/delete", post(delete))
-        .add("/arts/:id/replace", post(replace))
+        .add("/arts/{id}", get(show))
+        .add("/arts/{id}", post(update))
+        .add("/arts/{id}/delete", post(delete))
+        .add("/arts/{id}/replace", post(replace))
         .add("/mixes", get(mix_index))
-        .add("/mixes/:id", get(mix_show))
-        .add("/mixes/:id/delete", post(mix_delete))
+        .add("/mixes/{id}", get(mix_show))
+        .add("/mixes/{id}/delete", post(mix_delete))
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -125,13 +125,12 @@ pub async fn index(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
     jar: CookieJar,
-    query: Option<Query<ArtListQuery>>,
+    Query(query): Query<ArtListQuery>,
 ) -> Result<Response> {
     if let Some(response) = require_auth(&ctx, &jar)? {
         return Ok(response);
     }
 
-    let query = query.map(|Query(query)| query).unwrap_or_default();
     let page =
         arts::Model::find_backoffice_page(&ctx.db, query.page.unwrap_or(1), query.q.as_deref())
             .await?;
@@ -144,13 +143,12 @@ pub async fn show(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
     jar: CookieJar,
-    query: Option<Query<ArtDetailQuery>>,
+    Query(query): Query<ArtDetailQuery>,
 ) -> Result<Response> {
     if let Some(response) = require_auth(&ctx, &jar)? {
         return Ok(response);
     }
 
-    let query = query.map(|Query(query)| query).unwrap_or_default();
     let notice = query.queued.map(|_| {
         "Regeneration started in the background. Refresh this page in a bit to see the updated art."
     });
@@ -240,13 +238,12 @@ pub async fn mix_index(
     ViewEngine(v): ViewEngine<TeraView>,
     State(ctx): State<AppContext>,
     jar: CookieJar,
-    query: Option<Query<MixListQuery>>,
+    Query(query): Query<MixListQuery>,
 ) -> Result<Response> {
     if let Some(response) = require_auth(&ctx, &jar)? {
         return Ok(response);
     }
 
-    let query = query.map(|Query(query)| query).unwrap_or_default();
     let page = mixes::Model::find_backoffice_page(&ctx.db, query.page.unwrap_or(1)).await?;
     views::backoffice::mix_index(&v, &page)
 }

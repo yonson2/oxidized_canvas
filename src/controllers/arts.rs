@@ -170,10 +170,10 @@ pub fn routes() -> Routes {
         .add("/", get(show_latest))
         .add("/infinite", get(show_infinite))
         .add("/infinite.json", get(paginated_json))
-        .add("/img/:id", get(serve_image))
-        .add("/:id", get(show))
+        .add("/img/{id}", get(serve_image))
+        .add("/{id}", get(show))
         .add("/sitemap.xml", get(sitemap))
         //NOTE: api controller for json endpoints?
-        .add("/api/before/:id", get(cursor_before_json))
-        .add("/api/after/:id", get(cursor_after_json))
+        .add("/api/before/{id}", get(cursor_before_json))
+        .add("/api/after/{id}", get(cursor_after_json))
 }

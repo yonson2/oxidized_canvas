@@ -7,13 +7,13 @@ use loco_rs::{
     // AppWorker,
     bgworker::Queue,
     boot::{BootResult, StartMode, create_app},
+    config::Config,
     controller::AppRoutes,
     // db::{self, truncate_table},
     environment::Environment,
     task::Tasks,
 };
 use migration::Migrator;
-use sea_orm::DatabaseConnection;
 
 use crate::{controllers, initializers, tasks};
 
@@ -34,8 +34,8 @@ impl Hooks for App {
         )
     }
 
-    async fn boot(mode: StartMode, environment: &Environment) -> Result<BootResult> {
-        create_app::<Self, Migrator>(mode, environment).await
+    async fn boot(mode: StartMode, environment: &Environment, config: Config) -> Result<BootResult> {
+        create_app::<Self, Migrator>(mode, environment, config).await
     }
 
     async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
@@ -65,12 +65,12 @@ impl Hooks for App {
         // tasks-inject (do not remove)
     }
 
-    async fn truncate(_db: &DatabaseConnection) -> Result<()> {
+    async fn truncate(_ctx: &AppContext) -> Result<()> {
         // truncate_table(db, users::Entity).await?;
         Ok(())
     }
 
-    async fn seed(_db: &DatabaseConnection, _base: &Path) -> Result<()> {
+    async fn seed(_ctx: &AppContext, _base: &Path) -> Result<()> {
         // db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
         Ok(())
     }

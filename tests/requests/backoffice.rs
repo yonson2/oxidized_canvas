@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use axum_test::{TestServer, TestServerConfig};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
-use loco_rs::testing;
+use loco_rs::testing::request::boot_test;
 use oxidized_canvas::{
     app::App,
     models::{
@@ -207,7 +207,7 @@ async fn can_view_and_delete_mix_from_backoffice() {
 }
 
 async fn boot_server() -> (loco_rs::app::AppContext, TestServer) {
-    let boot = testing::boot_test::<App>().await.unwrap();
+    let boot = boot_test::<App>().await.unwrap();
     let config = TestServerConfig {
         default_content_type: Some("application/json".to_string()),
         save_cookies: true,
