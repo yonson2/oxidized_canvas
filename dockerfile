@@ -1,14 +1,18 @@
-FROM rust:1.90-slim as builder
+FROM rust:1.90-slim-bookworm as builder
 
 WORKDIR /usr/src/
 
 COPY . .
 
-RUN apt update -y && apt install nodejs npm -y
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs npm \
+    && rm -rf /var/lib/apt/lists/*
 RUN cargo build --release
 
 FROM debian:bookworm-slim
-RUN apt update -y && apt install curl wget -y
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl wget \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/app
 
