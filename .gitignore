@@ -17,5 +17,7 @@ target/
 *.pdb
 
 *.sqlite
+*.sqlite-wal
+skills-lock.json
 
 node_modules/
