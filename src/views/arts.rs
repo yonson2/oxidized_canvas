@@ -1,8 +1,4 @@
-use loco_rs::{
-    controller::views::pagination::{Pager, PagerMeta},
-    model::query::{PageResponse, PaginationQuery},
-    prelude::*,
-};
+use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
@@ -43,9 +39,6 @@ pub struct ListResponse {
     image_url: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct PaginationResponse {}
-
 impl From<&ArtTitleId> for ListResponse {
     fn from(art: &ArtTitleId) -> Self {
         Self {
@@ -59,24 +52,4 @@ impl From<&ArtTitleId> for ListResponse {
 #[must_use]
 pub fn list_response(items: &[ArtTitleId]) -> Vec<ListResponse> {
     items.iter().map(ListResponse::from).collect()
-}
-
-impl PaginationResponse {
-    #[must_use]
-    pub fn response(
-        data: PageResponse<ArtTitleId>,
-        pagination_query: &PaginationQuery,
-    ) -> Pager<Vec<ListResponse>> {
-        let results = list_response(&data.page);
-
-        Pager {
-            results,
-            info: PagerMeta {
-                page: pagination_query.page,
-                page_size: pagination_query.page_size,
-                total_pages: data.total_pages,
-                total_items: data.total_items,
-            },
-        }
-    }
 }

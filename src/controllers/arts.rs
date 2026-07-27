@@ -4,7 +4,6 @@
 use axum::debug_handler;
 use axum::extract::Query;
 use axum::http::{StatusCode, header};
-use loco_rs::model::query::PaginationQuery;
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 use sitemap_rs::image::Image;
@@ -12,7 +11,6 @@ use sitemap_rs::url::{ChangeFrequency, Url};
 use sitemap_rs::url_set::UrlSet;
 
 use crate::models::arts::ArtTitleId;
-use crate::views::arts::PaginationResponse;
 use crate::{
     models::_entities::arts::{Entity, Model},
     views,
@@ -93,17 +91,6 @@ pub async fn cursor_after_json(
     format::json(results)
 }
 
-//NOTE: I'm keeping this endpoint for now but it's not used
-// after cursor navigation has been implemented.
-#[debug_handler]
-pub async fn paginated_json(
-    State(ctx): State<AppContext>,
-    Query(pagination): Query<PaginationQuery>,
-) -> Result<Response> {
-    let items = Model::find_all_latest(&ctx.db, &pagination).await?;
-    format::json(PaginationResponse::response(items, &pagination))
-}
-
 #[debug_handler]
 pub async fn serve_image(
     Path(id): Path<String>,
@@ -142,11 +129,6 @@ pub async fn sitemap(State(ctx): State<AppContext>) -> Result<Response> {
             .priority(1.0)
             .build()
             .expect("Valid sitemap config"),
-        Url::builder(format!("{}{}", base_url, "about"))
-            .change_frequency(ChangeFrequency::Yearly)
-            .priority(0.9)
-            .build()
-            .expect("Valid sitemap config"),
     ];
 
     for id in ids {
@@ -169,7 +151,6 @@ pub fn routes() -> Routes {
     Routes::new()
         .add("/", get(show_latest))
         .add("/infinite", get(show_infinite))
-        .add("/infinite.json", get(paginated_json))
         .add("/img/{id}", get(serve_image))
         .add("/{id}", get(show))
         .add("/sitemap.xml", get(sitemap))

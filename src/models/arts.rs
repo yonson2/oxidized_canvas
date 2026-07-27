@@ -1,9 +1,6 @@
 use base64::{Engine as _, engine::general_purpose};
 use loco_rs::Error;
 use loco_rs::model::ModelResult;
-use loco_rs::model::query;
-use loco_rs::model::query::PageResponse;
-use loco_rs::model::query::PaginationQuery;
 use loco_rs::prelude::ActiveModelTrait;
 use loco_rs::prelude::ActiveValue;
 use loco_rs::prelude::ModelError;
@@ -245,32 +242,6 @@ impl super::_entities::arts::Model {
             .await?;
 
         Ok(title_ids)
-    }
-
-    /// fetches the most recently created `arts::Model`s
-    /// the returned data is paginated.
-    ///
-    /// # Errors
-    ///
-    /// When could not find arts or DB query error
-    pub async fn find_all_latest(
-        db: &DatabaseConnection,
-        pagination: &PaginationQuery,
-    ) -> Result<PageResponse<ArtTitleId>, Error> {
-        query::fetch_page(
-            db,
-            arts::Entity::find()
-                .select_only()
-                .columns([
-                    arts::Column::Id,
-                    arts::Column::Title,
-                    arts::Column::UpdatedAt,
-                ])
-                .order_by_desc(arts::Column::Id)
-                .into_partial_model::<ArtTitleId>(),
-            pagination,
-        )
-        .await
     }
 
     /// fetches `arts::Model`s before the given id.

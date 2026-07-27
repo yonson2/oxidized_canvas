@@ -38,11 +38,6 @@ uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json"] }
 sha2 = "0.10"
 
-# view engine i18n
-fluent-templates = { version = "0.8.0", features = ["tera"] }
-unic-langid = "0.9.4"
-# /view engine
-
 thiserror = "1.0.64"
 image = "0.25.2"
 base64 = "0.22.1"

@@ -1,0 +1,480 @@
+/* Night Gallery — the visual identity of the Gallery.
+   See docs/adr/0003-night-gallery-design-language.md */
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/cormorant-garamond-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/cormorant-garamond-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/cormorant-garamond-400i-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/cormorant-garamond-400i.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* surfaces — the gallery's walls */
+  --wall: #14100a;
+  --wall-lift: #1c1710;
+  --wall-inset: #0e0b06;
+
+  /* light — tungsten, used at low alpha */
+  --lamplight: 255, 213, 154;
+
+  /* ink — placard cardstock tones */
+  --ink: #ece4d3;
+  --ink-secondary: #a89d87;
+  --ink-muted: #6e6553;
+
+  /* the single accent */
+  --verdigris: #5fb3a1;
+  --verdigris-bright: #82cfbd;
+
+  /* lines */
+  --mat-line: rgba(236, 228, 211, 0.16);
+  --mat-line-strong: rgba(236, 228, 211, 0.34);
+
+  /* type */
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-label: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* depth — one motivated shadow: the canvas floats off the wall */
+  --shadow-canvas: 0 28px 70px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--wall);
+  color: var(--ink);
+  font-family: var(--font-label);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------- the room ---------- */
+
+/* a pool of tungsten light falling where a work hangs */
+.spotlight {
+  position: relative;
+}
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(62% 52% at 50% 30%, rgba(var(--lamplight), 0.12), transparent 72%);
+  pointer-events: none;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.625rem;
+  line-height: 1.2;
+  color: var(--ink);
+  text-align: center;
+  padding: 1.25rem 1rem 0.5rem;
+}
+.wordmark a {
+  transition: color 200ms ease;
+}
+.wordmark a:hover {
+  color: var(--verdigris-bright);
+}
+
+/* ---------- the work ---------- */
+
+.frame {
+  position: relative;
+  border: 1px solid var(--mat-line);
+  box-shadow: var(--shadow-canvas);
+  background: var(--wall-inset);
+}
+.frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* the collector's mark: a still verdigris mat-line inside the frame */
+.frame.liked::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid var(--verdigris);
+  opacity: 0.9;
+  pointer-events: none;
+  animation: collectorMark 500ms ease-out;
+}
+@keyframes collectorMark {
+  from {
+    opacity: 0;
+    inset: 2px;
+  }
+  to {
+    opacity: 0.9;
+    inset: 7px;
+  }
+}
+
+/* ---------- the placard ---------- */
+
+.work-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--ink);
+}
+
+.placard {
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-secondary);
+  text-align: center;
+  line-height: 1.7;
+}
+.placard .accession {
+  color: var(--verdigris);
+}
+
+/* quiet wayfinding within a room: previous / next */
+.gallery-nav {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.gallery-nav a {
+  color: var(--ink-secondary);
+  padding: 0.5rem 0;
+  transition: color 200ms ease;
+}
+.gallery-nav a:hover {
+  color: var(--verdigris-bright);
+}
+
+/* ---------- single-work room ---------- */
+
+.gallery-room {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.gallery-room main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1rem 3rem;
+}
+.work-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+.work-figure .frame {
+  width: 100%;
+  max-width: 34rem;
+}
+.work-figure .gallery-nav {
+  width: 100%;
+  max-width: 34rem;
+}
+.work-lineage {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-secondary);
+  text-align: center;
+  line-height: 1.8;
+}
+.work-lineage a {
+  color: var(--verdigris);
+  transition: color 200ms ease;
+}
+.work-lineage a:hover {
+  color: var(--verdigris-bright);
+}
+
+/* ---------- the corridor (infinite feed) ---------- */
+
+.snap-container {
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.snap-container::-webkit-scrollbar {
+  display: none;
+}
+.snap-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.snap-item .work-figure {
+  padding: 0 1rem;
+  max-height: 100vh;
+}
+.snap-item .frame {
+  max-height: 62vh;
+  width: auto;
+  max-width: min(34rem, 100%);
+}
+.snap-item .frame img {
+  max-height: 62vh;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* ---------- the like heart ---------- */
+
+.like-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 50;
+}
+.like-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 22px;
+  background: transparent;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+  position: relative;
+}
+.like-button .heart {
+  fill: none;
+  stroke: var(--verdigris);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 300ms ease-in-out;
+}
+.like-button.animating.liking .heart {
+  fill: var(--verdigris);
+  stroke: none;
+  animation: heartPulse 0.8s ease-out 1 forwards;
+}
+.like-button.animating.unliking .heart {
+  fill: none;
+  stroke: var(--verdigris);
+  animation: heartPulse 0.8s ease-out 1 forwards;
+}
+@keyframes heartPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* ---------- the scroll hint ---------- */
+
+.scroll-hint {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 40;
+  transition: opacity 400ms ease;
+}
+.scroll-hint svg {
+  display: block;
+  stroke: var(--ink-muted);
+}
+
+/* ---------- the studio (mix form) ---------- */
+
+.studio-prompt {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  text-align: center;
+  color: var(--ink);
+}
+.studio-form {
+  width: 100%;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+.studio-form.form-disabled {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.mix-button {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wall);
+  background: var(--verdigris);
+  border: none;
+  padding: 0.9rem 2.75rem;
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+.mix-button:hover:not(:disabled) {
+  background: var(--verdigris-bright);
+}
+.mix-button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.mix-status {
+  min-height: 1.5rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink-secondary);
+}
+.mix-status.error {
+  color: var(--verdigris-bright);
+}
+
+/* a thin verdigris line, slowly filling — the studio's only clock */
+.mix-loader {
+  display: none;
+  width: 100%;
+  max-width: 20rem;
+  height: 1px;
+  background: var(--mat-line);
+  position: relative;
+  overflow: hidden;
+}
+.mix-loader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: var(--verdigris);
+  box-shadow: 0 0 8px rgba(95, 179, 161, 0.6);
+  animation: mixProgress 90s linear infinite;
+}
+@keyframes mixProgress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* choices.js, skinned for the night.
+   Their stylesheet loads after ours, so these rules carry an extra
+   .choices class to win the cascade on equal terms. */
+.choices {
+  width: 100%;
+}
+.choices .choices__inner {
+  background: var(--wall-inset);
+  border: 1px solid var(--mat-line);
+  border-radius: 0;
+  padding: 0.5rem;
+  min-height: 3.25rem;
+}
+.choices.is-focused .choices__inner,
+.choices.is-open .choices__inner {
+  border-color: var(--mat-line-strong);
+}
+.choices .choices__input {
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-label);
+}
+.choices .choices__placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
+.choices .choices__list--dropdown {
+  background: var(--wall-lift);
+  border: 1px solid var(--mat-line);
+  border-radius: 0;
+}
+.choices .choices__item--choice {
+  color: var(--ink-secondary);
+}
+.choices .choices__item--choice.is-highlighted {
+  background: var(--wall-inset);
+  color: var(--ink);
+}
+.choices .choices__list--multiple .choices__item {
+  background: var(--wall-lift);
+  border: 1px solid var(--mat-line);
+  border-radius: 0;
+  color: var(--ink);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
+.choices .choices__button {
+  border-left: 1px solid var(--mat-line);
+  opacity: 0.6;
+}
+.choices .choices__button:hover {
+  opacity: 1;
+}

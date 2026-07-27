@@ -13,149 +13,22 @@ Create a new Mix - ImaginaryGallery
 <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
-<style>
-.choices {
-  background-color: rgb(24 24 27) !important;
-}
-.choices__inner {
-  background-color: rgb(24 24 27) !important;
-  border: 1px solid #374151 !important;
-  border-radius: 0.5rem !important;
-  color: white !important;
-}
-.choices__input {
-  background-color: rgb(24 24 27) !important;
-  color: white !important;
-}
-.choices__placeholder {
-  color: #9ca3af !important;
-}
-.choices__list--dropdown {
-  background-color: rgb(24 24 27) !important;
-  border: 1px solid #374151 !important;
-}
-.choices__item--choice {
-  background-color: rgb(31 41 55) !important;
-  color: white !important;
-  border-radius: 0 !important;
-}
-.choices__item--choice:hover,
-.choices__item--choice.is-highlighted {
-  background-color: rgb(24 24 27) !important;
-  color: white !important;
-}
-.choices__item {
-  background-color: rgb(39 39 42) !important;
-  color: white !important;
-  border-radius: 0.0rem !important;
-}
-.choices__button {
-  background-color: transparent !important;
-  border: none !important;
-  color: white !important;
-  opacity: 0.7;
-}
-.choices__button:hover {
-  opacity: 1;
-}
-
-.loader {
-  display: none;
-  width: 0;
-  height: 4.8px;
-  position: relative;
-  background: #FFF;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  box-sizing: border-box;
-  animation: animFw 90s linear infinite;
-  margin: 4rem auto;
-}
-
-.loader::after,
-.loader::before {
-  content: '';
-  width: 10px;
-  height: 1px;
-  background: #FFF;
-  position: absolute;
-  top: 9px;
-  right: -2px;
-  opacity: 0;
-  transform: rotate(-45deg) translateX(0px);
-  box-sizing: border-box;
-  animation: coli1 0.3s linear infinite;
-}
-
-.loader::before {
-  top: -4px;
-  transform: rotate(45deg);
-  animation: coli2 0.3s linear infinite;
-}
-
-@keyframes animFw {
-  0% {
-    width: 0;
-  }
-
-  100% {
-    width: 100%;
-  }
-}
-
-@keyframes coli1 {
-  0% {
-    transform: rotate(-45deg) translateX(0px);
-    opacity: 0.7;
-  }
-
-  100% {
-    transform: rotate(-45deg) translateX(-45px);
-    opacity: 0;
-  }
-}
-
-@keyframes coli2 {
-  0% {
-    transform: rotate(45deg) translateX(0px);
-    opacity: 1;
-  }
-
-  100% {
-    transform: rotate(45deg) translateX(-45px);
-    opacity: 0.7;
-  }
-}
-
-.form-disabled {
-  pointer-events: none;
-  opacity: 0.6;
-}
-</style>
-
-
-
 {% endblock head %}
 
 {% block content %}
-<div class="flex items-center justify-center flex-col">
-  <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> Which images would you like to mix? </h1>
-  <form method="POST" action="/mix" id="mix-form" class="w-full flex flex-col items-center">
-    <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5">
-      <select id="art-select" name="art_ids[]" class="w-full p-4 rounded-lg bg-zinc-900 text-white font-medium" multiple>
-        {% for art in title_ids %}
-          <option value="{{ art.id }}" data-custom-properties='{"id": "{{ art.id }}"}' data-label="# {{ art.id }}"># {{ art.id }} - {{ art.title }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <nav class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 px-4 sm:px-6 pt-6 dark:text-slate-100">
-      <div class="flex justify-center">
-        <button type="submit" id="mix-button" class="bg-rose-800 hover:bg-rose-700 text-white font-medium py-3 px-6 rounded-lg">
-          <span id="button-text">Mix!</span>
-        </button>
-      </div>
-      <div id="loader" class="loader"></div>
-      <p id="mix-status" class="mt-4 min-h-[1.5rem] text-center text-sm text-slate-300"></p>
-    </nav>
+<div class="work-figure">
+  <h2 class="studio-prompt">Which images would you like to mix?</h2>
+  <form method="POST" action="/mix" id="mix-form" class="studio-form">
+    <select id="art-select" name="art_ids[]" multiple>
+      {% for art in title_ids %}
+        <option value="{{ art.id }}" data-custom-properties='{"id": "{{ art.id }}"}' data-label="# {{ art.id }}"># {{ art.id }} - {{ art.title }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" id="mix-button" class="mix-button">
+      <span id="button-text">Mix!</span>
+    </button>
+    <div id="loader" class="mix-loader"></div>
+    <p id="mix-status" class="mix-status"></p>
   </form>
 </div>
 
@@ -173,8 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function setStatus(message, isError) {
     status.textContent = message || '';
-    status.classList.toggle('text-rose-300', Boolean(isError));
-    status.classList.toggle('text-slate-300', !isError);
+    status.classList.toggle('error', Boolean(isError));
   }
 
   function resetForm(message) {
@@ -208,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
+
   const choices = new Choices(element, {
     removeItemButton: true,
     placeholder: true,
@@ -228,16 +100,16 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
   });
-  
+
   // Handle form submission
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const selectedValues = [].concat(choices.getValue(true));
     const artIds = selectedValues.map(id => parseInt(id));
     activeRequestId = crypto.randomUUID();
     hasRedirected = false;
-    
+
     // Disable form and show loading state
     form.classList.add('form-disabled');
     button.disabled = true;
@@ -248,9 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (socket && socket.connected) {
       socket.emit('subscribe-mix', activeRequestId);
     }
-    
+
     console.log('Sending art IDs:', artIds);
-    
+
     fetch('/mix', {
       method: 'POST',
       headers: {

@@ -4,9 +4,6 @@ WORKDIR /usr/src/
 
 COPY . .
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends nodejs npm \
-    && rm -rf /var/lib/apt/lists/*
 RUN cargo build --release
 
 FROM debian:bookworm-slim

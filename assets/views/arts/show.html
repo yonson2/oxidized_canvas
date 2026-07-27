@@ -17,28 +17,25 @@
 {% endblock head %}
 
 {% block content %}
-<div class="flex items-center justify-center flex-col">
-  <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
-  <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
-    <img class="object-contain sm:rounded-md" src="/img/{{ item.id }}.webp?v={{ item.updated_at | date(format="%s-%f") }}" alt=""/>
+<div class="work-figure">
+  <h2 class="work-title">{{ item.title }}</h2>
+  <div class="frame">
+    <img src="/img/{{ item.id }}.webp?v={{ item.updated_at | date(format="%s-%f") }}" alt="{{ item.title }}"/>
   </div>
-    <nav class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 px-4 sm:px-6 pt-6 dark:text-slate-100">
-    <div class="flex justify-between">
-      <div class="w-1/3">
-        {% if item.id != 1 %}
-        <a id="prev-link" href="{{ item.id - 1}}" class="inline-flex items-center text-sm font-medium hover:underline decoration-red-700">
-          Previous
-        </a>
-        {% endif %}
-      </div>
-      <div class="w-1/3 flex justify-end">
-        {% if latest != true %}
-        <a id="next-link" href="/{{item.id + 1 }}" class="inline-flex items-center text-sm font-medium hover:underline decoration-red-700">
-          Next
-        </a>
-        {% endif %}
-      </div>
-    </div>
+  <p class="placard">
+    <span class="accession">#{{ item.id }}</span> · Diffusion on canvas · {{ item.created_at | date(format="%Y") }}
+  </p>
+  <nav class="gallery-nav">
+    <span>
+      {% if item.id != 1 %}
+      <a id="prev-link" href="{{ item.id - 1}}">← Previous</a>
+      {% endif %}
+    </span>
+    <span>
+      {% if latest != true %}
+      <a id="next-link" href="/{{item.id + 1 }}">Next →</a>
+      {% endif %}
+    </span>
   </nav>
 </div>
 {% endblock content %}

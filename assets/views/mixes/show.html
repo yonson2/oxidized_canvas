@@ -17,19 +17,19 @@
 {% endblock head %}
 
 {% block content %}
-<div class="flex items-center justify-center flex-col">
-  <h1 class="mb-4 font-medium text-xl dark:text-slate-100"> {{ item.title }} </h1>
-  <div class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 sm:rounded-md">
-    <img class="object-contain sm:rounded-md" src="/mix/img/{{item.id}}.webp" alt=""/>
+<div class="work-figure">
+  <h2 class="work-title">{{ item.title }}</h2>
+  <div class="frame">
+    <img src="/mix/img/{{item.id}}.webp" alt="{{ item.title }}"/>
   </div>
-    <nav class="w-full sm:w-4/5 md:w-3/5 lg:w-2/5 px-4 sm:px-6 pt-6 dark:text-slate-100">
-    <div class="flex justify-center">
-      <p> Created by mixing: 
-        {% for id in art_ids -%}
-          <a href="/{{ id }}" class="italic text-blue-400 hover:text-blue-300">#{{ id }}</a>{% if loop.last %}{% elif loop.index == art_ids | length - 1 %} and {% else %}, {% endif %}
-        {%- endfor %}
-      </p>
-    </div>
-  </nav>
+  <p class="placard">
+    <span class="accession">#M{{ item.id }}</span> · Diffusion on canvas · {{ item.created_at | date(format="%Y") }}
+  </p>
+  <p class="work-lineage">
+    Mixed from
+    {% for id in art_ids -%}
+      <a href="/{{ id }}">#{{ id }}</a>{% if loop.last %}{% elif loop.index == art_ids | length - 1 %} and {% else %}, {% endif %}
+    {%- endfor %}
+  </p>
 </div>
 {% endblock content %}
