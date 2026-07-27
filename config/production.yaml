@@ -1,0 +1,6 @@
+# Production overrides — merged on top of defaults.yaml.
+# Anything not listed here is inherited from defaults.yaml.
+# Secrets have no defaults: the app refuses to boot if they are unset.
+settings:
+  openrouter_api_key: {{ get_env(name="OPENROUTER_API_KEY") }}
+  backoffice_password: {{ get_env(name="BACKOFFICE_PASSWORD") }}
