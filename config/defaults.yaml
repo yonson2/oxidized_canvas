@@ -209,7 +209,8 @@ settings:
     - "google/gemini-3.6-flash"
   image_models:
     - "openai/gpt-image-2"
-    - "google/gemini-3-pro-image-preview"
+    - "microsoft/mai-image-2.5"
+    - "google/gemini-3.1-flash-image"
     - "black-forest-labs/flux.2-max"
   old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}
   backoffice_password: {{ get_env(name="BACKOFFICE_PASSWORD", default="change_me") }}
