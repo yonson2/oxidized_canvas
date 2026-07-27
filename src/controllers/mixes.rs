@@ -17,11 +17,7 @@ use crate::{
         mixarts::MixArtParams,
         mixes::MixParams,
     },
-    services::{
-        providers::{ImageProvider, TextProvider},
-        realtime,
-        service_provider::ServiceProvider,
-    },
+    services::{realtime, service_provider::ServiceProvider},
     tasks::art_prompts::{MIX_IMAGE_PROMPT, TITLE_PROMPT},
     views,
 };
@@ -94,9 +90,10 @@ pub async fn create(
 
         let arts = arts::Model::find_in(&ctx.db, params.art_ids.clone()).await?;
 
-        let img_gen =
-            ServiceProvider::img_service(&ImageProvider::Google, &settings.gemini_api_key);
-        let text_gen = ServiceProvider::txt_service(&TextProvider::OpenAI, &settings.openai_key);
+        let img_gen = ServiceProvider::random_img_service(&settings)
+            .map_err(|e| Error::Message(format!("Unable to configure image generator: {e}")))?;
+        let text_gen = ServiceProvider::random_txt_service(&settings)
+            .map_err(|e| Error::Message(format!("Unable to configure text generator: {e}")))?;
 
         realtime::emit_mix_progress(
             &request_id,

@@ -1,29 +1,37 @@
-use oxidized_canvas::{
-    common,
-    services::{providers::ImageProvider, service_provider::ServiceProvider},
-};
-
 use loco_rs::cli::playground;
-use oxidized_canvas::app::App;
+use oxidized_canvas::{
+    app::App, common, services::service_provider::ServiceProvider,
+};
 
 #[tokio::main]
 async fn main() -> loco_rs::Result<()> {
     let ctx = playground::<App>().await?;
     let settings = common::settings::Settings::from_json(&ctx.config.settings.ok_or(0).unwrap())?;
 
-    println!("---BFL Example---");
+    println!("---OpenRouter Example---");
+
+    // Text Generation
+    println!("\nGenerating text...");
+    let txt_ai = ServiceProvider::random_txt_service(&settings)
+        .map_err(|e| loco_rs::Error::Message(e.to_string()))?;
+    println!("Using model: {}", txt_ai.model_name());
+    match txt_ai.generate("What is the meaning of life?").await {
+        Ok(v) => println!("Generated text: {v}"),
+        Err(e) => println!("Error generating text: {e}"),
+    }
 
     // Image Generation
-    println!("\nGenerating image with BFL...");
-    let img_ai = ServiceProvider::img_service(&ImageProvider::Bfl, &settings.bfl_api_key);
-
+    println!("\nGenerating image...");
+    let img_ai = ServiceProvider::random_img_service(&settings)
+        .map_err(|e| loco_rs::Error::Message(e.to_string()))?;
+    println!("Using model: {}", img_ai.model_name());
     match img_ai
-        .generate("A beautiful landscape painting of a mountain range at sunset")
+        .generate("A photorealistic image of a cat programming on a laptop")
         .await
     {
         Ok(base64_image) => {
             println!("Successfully generated image.");
-            save_image(&base64_image, "bfl_image.webp");
+            save_image(&base64_image, "openrouter_image.webp");
         }
         Err(e) => println!("Error generating image: {e}"),
     }

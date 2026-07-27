@@ -9,9 +9,9 @@ pub trait ImageGenerator: Send {
     fn model_name(&self) -> String;
 }
 
-//TODO: change name? merge traits? leave as is? (TO-THINK)
 #[async_trait]
 pub trait TextGenerator: Send {
     /// generate takes a prompt and returns a text response from AI.
     async fn generate(&self, prompt: &str) -> Result<String, Error>;
+    fn model_name(&self) -> String;
 }

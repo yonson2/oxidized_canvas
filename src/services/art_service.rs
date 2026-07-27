@@ -4,7 +4,7 @@ use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use crate::{
     common::settings::Settings,
     models::arts::{self, ArtParams},
-    services::{providers::TextProvider, realtime, service_provider::ServiceProvider},
+    services::{realtime, service_provider::ServiceProvider},
     tasks::art_prompts::{IMAGE_PROMPT, SAMPLE_PROMPTS, SAMPLE_TITLES, TITLE_PROMPT},
 };
 use uuid::Uuid;
@@ -20,8 +20,10 @@ fn settings(ctx: &AppContext) -> Result<Settings> {
 
 pub async fn create_art(ctx: &AppContext) -> Result<arts::Model> {
     let settings = settings(ctx)?;
-    let img_gen = ServiceProvider::random_img_service(&settings);
-    let text_gen = ServiceProvider::random_txt_service(&settings);
+    let img_gen = ServiceProvider::random_img_service(&settings)
+        .map_err(|e| Error::Message(format!("Unable to configure image generator: {e}")))?;
+    let text_gen = ServiceProvider::random_txt_service(&settings)
+        .map_err(|e| Error::Message(format!("Unable to configure text generator: {e}")))?;
 
     let random_arts = arts::Model::find_n_random(&ctx.db, 5).await?;
     let latest_arts = arts::Model::find_n_latest(&ctx.db, 5).await?;
@@ -117,8 +119,10 @@ async fn replace_art_inner(
     progress_art_uuid: Option<Uuid>,
 ) -> Result<arts::Model> {
     let settings = settings(ctx)?;
-    let img_gen = ServiceProvider::random_img_service(&settings);
-    let text_gen = ServiceProvider::txt_service(&TextProvider::Anthropic, &settings.anthropic_key);
+    let img_gen = ServiceProvider::random_img_service(&settings)
+        .map_err(|e| Error::Message(format!("Unable to configure image generator: {e}")))?;
+    let text_gen = ServiceProvider::random_txt_service(&settings)
+        .map_err(|e| Error::Message(format!("Unable to configure text generator: {e}")))?;
 
     if let Some(art_uuid) = progress_art_uuid.as_ref() {
         realtime::emit_art_replace_progress(
@@ -231,7 +235,8 @@ async fn rerender_art_image_inner(
     progress_art_uuid: Option<Uuid>,
 ) -> Result<arts::Model> {
     let settings = settings(ctx)?;
-    let img_gen = ServiceProvider::random_img_service(&settings);
+    let img_gen = ServiceProvider::random_img_service(&settings)
+        .map_err(|e| Error::Message(format!("Unable to configure image generator: {e}")))?;
 
     if let Some(art_uuid) = progress_art_uuid.as_ref() {
         realtime::emit_art_replace_progress(

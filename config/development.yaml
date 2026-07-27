@@ -202,9 +202,14 @@ auth:
     expiration: 604800 # 7 days
 # Custom settings
 settings:
-  bfl_api_key: {{ get_env(name="BFL_API_KEY", default="bfl_api_key_goes_here") }}
-  gemini_api_key: {{ get_env(name="GEMINI_API_KEY", default="google_api_key_goes_here") }}
-  anthropic_key: {{ get_env(name="ANTHROPIC_API_KEY", default="change_me") }}
-  openai_key: {{ get_env(name="OPENAI_API_KEY", default="change_me") }}
+  openrouter_api_key: {{ get_env(name="OPENROUTER_API_KEY", default="openrouter_api_key_goes_here") }}
+  text_models:
+    - "anthropic/claude-sonnet-5"
+    - "openai/gpt-5.6-sol"
+    - "google/gemini-3.6-flash"
+  image_models:
+    - "openai/gpt-image-2"
+    - "google/gemini-3-pro-image-preview"
+    - "black-forest-labs/flux.2-max"
   old_db_url: {{ get_env(name="OLD_DB_URL", default="postgres://postgres") }}
   backoffice_password: {{ get_env(name="BACKOFFICE_PASSWORD", default="change_me") }}
